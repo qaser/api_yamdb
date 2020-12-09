@@ -1,6 +1,12 @@
 .git/*
 env/
 venv/
+.venv
+.venv/
+
+sent_emails/
+.sent_emails/
+.sent_emails/*
 
 __pycache__/
 *.py[cod]
@@ -9,11 +15,38 @@ __pycache__/
 .DS_Store
 .AppleDouble
 .LSOverride
-.vscode
+gitignore
+vscode/
+.vscode/
 
 *.sublime-project
 *.sublime-workspace
 
-media/
-
 db.sqlite3
+
+=
+
+static/
+.static
+.static/
+posts/static/
+
+/migrations/
+.migrations
+.migrations/
+
+assets/
+.assets
+.assets/
+
+coverage/
+.coverage
+.coverage/
+
+media/
+.media
+.media/
+
+run.sh
+
+token.txt
