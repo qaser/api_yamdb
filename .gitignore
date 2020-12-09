@@ -31,7 +31,7 @@ static/
 .static/
 posts/static/
 
-/migrations/
+api/migrations/
 .migrations
 .migrations/
 
@@ -48,5 +48,3 @@ media/
 .media/
 
 run.sh
-
-token.txt
