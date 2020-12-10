@@ -92,7 +92,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
 
-# я ввел параметры из прошлого спринта, возмоно нужно будет корректировать 
+# я ввел параметры из прошлого спринта, возможно нужно будет корректировать 
 REST_FRAMEWORK = {
         'DEFAULT_PERMISSION_CLASSES': [
             'rest_framework.permissions.IsAuthenticated',
