@@ -5,7 +5,6 @@ from django.db.models.deletion import CASCADE
 User = get_user_model()
 
 class Review(models.Model):
-#    id = models.IntegerField('ID отзыва')
     text = models.TextField('текст отзыва')
     author = models.ForeignKey(
         User,
