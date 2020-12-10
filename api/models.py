@@ -19,7 +19,6 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
-#    id = models.IntegerField('ID комментария')
     text = models.TextField('текст отзыва')
     author = models.ForeignKey(
         User,
