@@ -15,7 +15,7 @@ class Review(models.Model):
         Title,
         on_delete=CASCADE,
         verbose_name='произведение',
-        related_name='title',
+        related_name='reviews',
         null=True,
         blank=True
     )
@@ -45,7 +45,7 @@ class Comment(models.Model):
         Review,
         on_delete=CASCADE,
         verbose_name='отзыв',
-        related_name='review',
+        related_name='comments',
         null=True,
         blank=True
     )

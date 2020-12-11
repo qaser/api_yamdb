@@ -14,7 +14,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Review
         read_only_fields = ('id','pub_date')
-        exclude= ['title']
+        exclude= ['title']  # исключаю поле 'title'
 
 
 class CommentSerializer(serializers.ModelSerializer):
