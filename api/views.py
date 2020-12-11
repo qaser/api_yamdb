@@ -3,9 +3,14 @@ from django.shortcuts import render
 from rest_framework.generics import get_object_or_404
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Review, Comment, Title
+from .models import Review, Comment, Title, Category, Genre
 from .pagination import CustomPagination
-from .serializers import CommentSerializer, ReviewSerializer
+from .serializers import (
+    CommentSerializer,
+    ReviewSerializer,
+    GenreSerializer,
+    CategorySerializer
+    )
 
 
 class ReviewViewSet(ModelViewSet):
@@ -30,3 +35,10 @@ class CommentViewSet(ModelViewSet):
         review = get_object_or_404(Review, id=review_id)
         queryset = review.comments.all()
         return queryset
+
+
+# class CategoryViewSet(ModelViewSet):
+
+# class GenreViewSet(ModelViewSet):
+
+# class TitleViewSet(ModelViewSet):
