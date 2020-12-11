@@ -91,11 +91,10 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
-
-# я ввел параметры из прошлого спринта, возможно нужно будет корректировать 
+ 
 REST_FRAMEWORK = {
         'DEFAULT_PERMISSION_CLASSES': [
-            'rest_framework.permissions.IsAuthenticated',
+            'rest_framework.permissions.AllowAny',
         ],
         'DEFAULT_AUTHENTICATION_CLASSES': [
             'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -111,6 +110,6 @@ REST_FRAMEWORK = {
             'user': '10000/day',
             'anon': '1000/day',
         },
-        'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-        'PAGE_SIZE': 100
+        'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPagination',
+        'PAGE_SIZE': 10
     }
