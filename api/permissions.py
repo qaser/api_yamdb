@@ -14,7 +14,7 @@ class AdminOrReadOnly(BasePermission):
         # или авторизованный владелец сайта (админ)
         return (
             request.method in SAFE_METHODS or
-            request.user and request.user.is_staff
+            request.user and request.user.is_staff  # is_staff
             and request.user.is_authenticated
         )
 

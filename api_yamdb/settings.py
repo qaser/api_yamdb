@@ -18,8 +18,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'api',
-    'djoser',
     'rest_framework_simplejwt',
+    'djoser',
 ]
 
 MIDDLEWARE = [
