@@ -9,11 +9,9 @@ User = get_user_model()
 class Category(models.Model):
     name = models.CharField(
         verbose_name='Название категории объекта',
-        )
-    slug = models.SlugField(
-        unique=True,
-        verbose_name="Поле slug",
-        )
+        max_length=50
+    )
+    slug = models.SlugField(unique=True, verbose_name="Поле slug")
 
     class Meta:
         ordering = ('slug',)
@@ -22,41 +20,37 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(
         verbose_name='Название жанра',
-        )
-    slug = models.SlugField(
-        unique=True,
-        verbose_name="Поле slug",
-        )
+        max_length=50
+    )
+    slug = models.SlugField(unique=True, verbose_name="Поле slug")
 
     class Meta:
         ordering = ('slug',)
 
 
 class Title(models.Model):
-    id = models.AutoField(
-        verbose_name='ID произведения',
-        primary_key=True,
-        )
+    id = models.AutoField(verbose_name='ID произведения', primary_key=True)
     name = models.CharField(
         verbose_name='Название',
-        )
+        max_length=200
+    )
     year = models.IntegerField(
         verbose_name='Год выпуска',
-        )
+        null=True,
+        blank=True
+    )
     rating = models.IntegerField(
         verbose_name='Рейтинг на основе отзывов, если отзывов — `None`',
         null=True,
         blank=True,
-        )
-    description = models.TextField(
-        verbose_name='Описание',
-        )
+    )
+    description = models.TextField(verbose_name='Описание', null=True)
     genre = models.ManyToManyField(
         Genre,
         verbose_name='Slug жанра',
         related_name='genres',
         blank=True,
-        )
+    )
     category = models.ForeignKey(
         Category,
         verbose_name='Slug категории',
@@ -64,7 +58,7 @@ class Title(models.Model):
         related_name='categories',
         null=True,
         blank=True
-        )
+    )
 
     class Meta:
         ordering = ('id',)

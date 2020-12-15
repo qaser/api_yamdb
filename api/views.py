@@ -2,6 +2,7 @@ from django.db.models.base import Model
 from django.shortcuts import render
 from rest_framework.generics import get_object_or_404
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.permissions import IsAuthenticated
 
 from .models import Review, Comment, Title, Category, Genre
 from .pagination import CustomPagination
@@ -16,6 +17,7 @@ from .serializers import (
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     pagination_class = CustomPagination
+    permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         # извлекаю id тайтла из url'а
@@ -23,6 +25,11 @@ class ReviewViewSet(ModelViewSet):
         title = get_object_or_404(Title, id=title_id)
         queryset = title.reviews.all()
         return queryset
+
+    def perform_create(self, serializer):
+        title_id = self.kwargs['title_id']
+        get_object_or_404(Title, id=title_id)
+        serializer.save(author=self.request.user, id=title_id)
 
 
 class CommentViewSet(ModelViewSet):
