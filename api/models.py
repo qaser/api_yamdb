@@ -1,13 +1,35 @@
-from django.contrib.auth import get_user_model
+from __future__ import unicode_literals
+
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone
+from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
 
+class User(AbstractBaseUser, PermissionsMixin):
+    email = models.EmailField(max_length=40, unique=True)
+    first_name = models.CharField(max_length=30, blank=True)
+    last_name = models.CharField(max_length=30, blank=True)
+    is_active = models.BooleanField(default=True)
+    # is_staff = models.BooleanField(default=False)
+    # написать поле роли, не знаю какой тип поля
+    date_joined = models.DateTimeField(default=timezone.now)
+ 
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+ 
+    def save(self, *args, **kwargs):
+        super(User, self).save(*args, **kwargs)
+        return self
+
+
 class Category(models.Model):
     name = models.CharField(
+        max_length=120,
         verbose_name='Название категории объекта',
         )
     slug = models.SlugField(
@@ -21,6 +43,7 @@ class Category(models.Model):
 
 class Genre(models.Model):
     name = models.CharField(
+        max_length=120,
         verbose_name='Название жанра',
         )
     slug = models.SlugField(
@@ -38,6 +61,7 @@ class Title(models.Model):
         primary_key=True,
         )
     name = models.CharField(
+        max_length=120,
         verbose_name='Название',
         )
     year = models.IntegerField(

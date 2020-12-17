@@ -1,7 +1,18 @@
 from rest_framework import serializers
 # from rest_framework.validators import UniqueTogetherValidator
 
-from .models import Comment, Review, Category, Genre, Title
+from .models import Comment, Review, Category, Genre, Title, User
+
+
+class UserSerializer(serializers.ModelSerializer):
+ 
+    date_joined = serializers.ReadOnlyField()
+ 
+    class Meta(object):
+        model = User
+        fields = ('id', 'email', 'first_name', 'last_name',
+                  'date_joined', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
 
 
 class CategorySerializer(serializers.ModelSerializer):

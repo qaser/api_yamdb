@@ -1,14 +1,17 @@
 from django.db.models.base import Model
 from django.shortcuts import render
+from rest_framework import status
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from .models import Category, Comment, Genre, Review, Title
 from .pagination import CustomPagination
-from .permissions import IsAuthorOrReadOnlyPermission
+from .permissions import AllowAny, IsAuthorOrReadOnlyPermission
 from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer)
+                          GenreSerializer, ReviewSerializer, UserSerializer)
 
 
 class ReviewViewSet(ModelViewSet):
@@ -48,3 +51,13 @@ class CommentViewSet(ModelViewSet):
 # class GenreViewSet(ModelViewSet):
 
 # class TitleViewSet(ModelViewSet):
+
+class CreateUserAPIView(APIView):
+    permission_classes = (AllowAny,)
+ 
+    def post(self, request):
+        user = request.data
+        serializer = UserSerializer(data=user)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
