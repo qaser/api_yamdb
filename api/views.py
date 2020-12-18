@@ -83,10 +83,10 @@ class GenreViewSet(ModelViewSet):
 
 
 class TitleViewSet(ModelViewSet):
-#    queryset = Title.objects.annotate(avg_rating=Avg('reviews__score'))
-    queryset = Title.objects.all()
+#    queryset = Title.objects.all()
+#    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     serializer_class = TitleListSerializer
-#    pagination_class = CustomPagination
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
 #    filterset_class = TitleFilter
     filter_backends = [DjangoFilterBackend]
@@ -96,3 +96,9 @@ class TitleViewSet(ModelViewSet):
         if self.action in ('list','retrieve'):
             return TitleListSerializer
         return TitlePostSerializer
+
+
+    def get_queryset(self):
+        avg = Review.objects.annotate(Avg('score'))
+        queryset = Title.objects.annotate(rating=avg)
+        return queryset

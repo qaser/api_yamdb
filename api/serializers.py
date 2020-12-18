@@ -1,5 +1,4 @@
 from attr import fields
-from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -27,7 +26,6 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleListSerializer(serializers.ModelSerializer):
     category = CategorySerializer()
     genre = GenreSerializer(many=True)
-    rating = Title.objects.aggregate(avg_rating=Avg('reviews__score'))
 
     class Meta:
          fields = '__all__'
@@ -51,7 +49,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 #        fields = ('id', 'text', 'author', 'score', 'pub_date')
         model = Review
         read_only_fields = ('id', 'pub_date')
-#        exclude = ['title']  # исключаю поле 'title'
+        exclude = ['title']  # исключаю поле 'title'
 #        validators =  [
 #            UniqueTogetherValidator(
 #                queryset=Review.objects.all(),
@@ -85,7 +83,6 @@ class TitlePostSerializer(serializers.ModelSerializer):
         many=True,
         queryset=Genre.objects.all()
     )
-    rating = Title.objects.aggregate(avg_rating=Avg('reviews__score'))
 
     class Meta:
          fields = '__all__'
