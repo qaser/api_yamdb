@@ -6,24 +6,6 @@ from rest_framework.validators import UniqueTogetherValidator
 from .models import Comment, Review, Category, Genre, Title, User
 
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = '__all__'
-        model = User
-
-
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = ('name', 'slug')
-        model = Category
-
-
-class GenreSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = ('name', 'slug')
-        model = Genre
-
-
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
@@ -62,7 +44,7 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'pub_date')
 #        exclude = ['review']
 
-
+'''
 class TitlePostSerializer(serializers.ModelSerializer):
     category = serializers.SlugRelatedField(
         slug_field='slug',
@@ -94,3 +76,5 @@ class TitleListSerializer(serializers.ModelSerializer):
         title_score = sett.aggregate(Avg('score'))
         representation['rating'] = title_score.get('score__avg', 0)
         return representation
+
+'''

@@ -12,20 +12,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ParseError
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Category, Comment, Genre, Review, Title, User
+from .models import Comment, Review, Title, User
 from .pagination import CustomPagination
 from .permissions import IsAuthorOrReadOnlyPermission, AdminOrReadOnly
-from .serializers import (CategorySerializer, CommentSerializer, TitleListSerializer,
-                          GenreSerializer, ReviewSerializer, TitlePostSerializer, UserSerializer)
-
-
-class UserViewSet(ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    filter_backends = [SearchFilter]
-    lookup_field = 'username'
-    pagination_class = CustomPagination
-
+from .serializers import (CommentSerializer, ReviewSerializer)
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
@@ -62,26 +52,7 @@ class CommentViewSet(ModelViewSet):
         queryset = review.comments.all()
         return queryset
 
-
-class CategoryViewSet(ModelViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-#    permission_classes = [AdminOrReadOnly,]
-    filter_backends = [SearchFilter]
-    pagination_class = CustomPagination
-    search_fields = ['name', ]
-    lookup_field = 'slug'
-
-
-class GenreViewSet(ModelViewSet):
-    queryset = Genre.objects.all()
-    serializer_class = GenreSerializer
-    pagination_class = CustomPagination
-    filter_backends = [SearchFilter]
-    filterset_fields = ['name', ]
-    lookup_field = 'slug'
-
-
+'''
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleListSerializer
@@ -95,3 +66,4 @@ class TitleViewSet(ModelViewSet):
             return TitleListSerializer
         return TitlePostSerializer
 
+'''
