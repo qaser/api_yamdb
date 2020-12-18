@@ -3,10 +3,12 @@ from django.db.models import Avg
 from django.db import IntegrityError
 from django.http import response
 from django.shortcuts import render
-from rest_framework import serializers
+from rest_framework import serializers, status
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ParseError
@@ -15,7 +17,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import Comment, Review, Title, User
 from .pagination import CustomPagination
 from .permissions import IsAuthorOrReadOnlyPermission, AdminOrReadOnly
-from .serializers import (CommentSerializer, ReviewSerializer)
+from .serializers import (CommentSerializer, ReviewSerializer, UserSerializer)
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
@@ -51,6 +53,16 @@ class CommentViewSet(ModelViewSet):
         review = get_object_or_404(Review, id=review_id)
         queryset = review.comments.all()
         return queryset
+
+class CreateUserAPIView(APIView):
+    permission_classes = (AllowAny,)
+ 
+    def post(self, request):
+        user = request.data
+        serializer = UserSerializer(data=user)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 '''
 class TitleViewSet(ModelViewSet):
