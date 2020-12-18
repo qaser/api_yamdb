@@ -25,3 +25,16 @@ class IsAuthorOrReadOnlyPermission(BasePermission):
             request.method in SAFE_METHODS
             or obj.author == request.user
         )
+
+    class IsSuperuserPermission(BasePermission):
+        def has_permission(self, request, view):
+            return request.user.is_superuser 
+
+
+'''
+    def get_permissions(self):
+        """
+        Instantiates and returns the list of permissions that this view requires.
+        """
+        return [permission() for permission in self.permission_classes]
+'''
