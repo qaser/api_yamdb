@@ -18,10 +18,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     # is_staff = models.BooleanField(default=False)
     # написать поле роли, не знаю какой тип поля
     date_joined = models.DateTimeField(default=timezone.now)
- 
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
- 
+
     def save(self, *args, **kwargs):
         super(User, self).save(*args, **kwargs)
         return self
