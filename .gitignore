@@ -4,6 +4,8 @@ venv/
 .venv
 .venv/
 
+.import
+
 sent_emails/
 .sent_emails/
 .sent_emails/*

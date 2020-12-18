@@ -18,8 +18,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'api',
-    'djoser',
     'rest_framework_simplejwt',
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -93,16 +93,16 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static/'),)
 
- 
+
 REST_FRAMEWORK = {
         'DEFAULT_PERMISSION_CLASSES': [
-            'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+            'rest_framework.permissions.AllowAny',
         ],
         'DEFAULT_AUTHENTICATION_CLASSES': [
             'rest_framework_simplejwt.authentication.JWTAuthentication',
         ],
         'DEFAULT_FILTER_BACKENDS': [
-#            'django_filters.rest_framework.DjangoFilterBackend'
+            'django_filters.rest_framework.DjangoFilterBackend'
         ],
         'DEFAULT_THROTTLE_CLASSES': [
             'rest_framework.throttling.UserRateThrottle',
@@ -115,3 +115,9 @@ REST_FRAMEWORK = {
         'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPagination',
         'PAGE_SIZE': 10
     }
+
+
+EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
+
+EMAIL_FILE_PATH = os.path.join(BASE_DIR, "sent_emails")
+ 
