@@ -1,4 +1,3 @@
-from attr import fields
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
@@ -7,9 +6,8 @@ from .models import Comment, Review, Category, Genre, Title, User
 
 
 class UserSerializer(serializers.ModelSerializer):
- 
     date_joined = serializers.ReadOnlyField()
- 
+
     class Meta(object):
         model = User
         fields = ('id', 'email', 'first_name', 'last_name',
@@ -28,7 +26,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Review
         read_only_fields = ('id', 'pub_date')
-        validators =  [
+        validators = [
             UniqueTogetherValidator(
                 queryset=Review.objects.all(),
                 fields=['author', 'title']
@@ -47,31 +45,26 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         read_only_fields = ('id', 'pub_date')
 
-'''
-class TitlePostSerializer(serializers.ModelSerializer):
-    category = serializers.SlugRelatedField(
-        slug_field='slug',
-#        many=True,
-#        read_only=True,
-        queryset=Category.objects.all()
-    )
-    genre = serializers.SlugRelatedField(
-        slug_field='slug',
-        many=True,
-        queryset=Genre.objects.all()
-    )
 
+class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-         fields = '__all__'
-         model = Title
+        fields = '__all__'
+        model = Category
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        fields = '__all__'
+        model = Genre
+
 
 class TitleListSerializer(serializers.ModelSerializer):
-    category = CategorySerializer()
-    genre = GenreSerializer(many=True)
+    category = CategorySerializer(many=False, read_only=True)
+    genre = GenreSerializer(many=True, read_only=True)
 
     class Meta:
-         fields = '__all__'
-         model = Title
+        fields = '__all__'
+        model = Title
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
@@ -80,4 +73,18 @@ class TitleListSerializer(serializers.ModelSerializer):
         representation['rating'] = title_score.get('score__avg', 0)
         return representation
 
-'''
+
+class TitlePostSerializer(serializers.ModelSerializer):
+    category = serializers.SlugRelatedField(
+        queryset=Category.objects.all(),
+        slug_field='slug',
+    )
+    genre = serializers.SlugRelatedField(
+        queryset=Genre.objects.all(),
+        slug_field='slug',
+        many=True,
+    )
+
+    class Meta:
+        fields = '__all__'
+        model = Title

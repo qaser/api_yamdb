@@ -16,10 +16,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     # is_staff = models.BooleanField(default=False)
     # написать поле роли, не знаю какой тип поля
     date_joined = models.DateTimeField(default=timezone.now)
- 
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
- 
+
     def save(self, *args, **kwargs):
         super(User, self).save(*args, **kwargs)
         return self
@@ -28,10 +28,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Category(models.Model):
     name = models.CharField(
         verbose_name='Название категории объекта',
+        max_length=100
         )
     slug = models.SlugField(
         unique=True,
         verbose_name="Поле slug",
+        max_length=100
         )
 
     class Meta:
@@ -41,6 +43,7 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(
         verbose_name='Название жанра',
+        max_length=100
         )
     slug = models.SlugField(
         unique=True,
@@ -58,6 +61,7 @@ class Title(models.Model):
         )
     name = models.CharField(
         verbose_name='Название',
+        max_length=100
         )
     year = models.IntegerField(
         verbose_name='Год выпуска',
