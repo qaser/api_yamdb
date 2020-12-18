@@ -90,6 +90,7 @@ class TitleListSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         representation = super().to_representation(instance)
-        title_score = Review.objects.aggregate(Avg('score'))
+        sett = Review.objects.filter(id=instance.id)
+        title_score = sett.aggregate(Avg('score'))
         representation['rating'] = title_score.get('score__avg', 0)
-        return representation 
+        return representation

@@ -22,6 +22,7 @@ from .serializers import (CategorySerializer, CommentSerializer, TitleListSerial
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    filter_backends = [SearchFilter]
     lookup_field = 'username'
     pagination_class = CustomPagination
 
@@ -46,7 +47,6 @@ class ReviewViewSet(ModelViewSet):
             serializer.save(author=self.request.user, title=title)
         except IntegrityError:  # exception raised when dublicate key in DB
             raise ParseError(detail='Only one review from unique user')  # code=None?
-
 
 
 class CommentViewSet(ModelViewSet):
@@ -83,12 +83,10 @@ class GenreViewSet(ModelViewSet):
 
 
 class TitleViewSet(ModelViewSet):
-#    queryset = Title.objects.all()
-    queryset = Title.objects.annotate(avg_rating=Avg('reviews__score'))
+    queryset = Title.objects.all()
     serializer_class = TitleListSerializer
     pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
-#    filterset_class = TitleFilter
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['category', 'genre', 'year', 'name']
 
