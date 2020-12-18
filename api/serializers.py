@@ -1,4 +1,5 @@
 from attr import fields
+from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -86,3 +87,9 @@ class TitleListSerializer(serializers.ModelSerializer):
     class Meta:
          fields = '__all__'
          model = Title
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        title_score = Review.objects.aggregate(Avg('score'))
+        representation['rating'] = title_score.get('score__avg', 0)
+        return representation 
