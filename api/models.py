@@ -28,6 +28,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 class Category(models.Model):
     name = models.CharField(
         verbose_name='Название категории объекта',
+        max_length=50
         )
     slug = models.SlugField(
         unique=True,
@@ -41,6 +42,7 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(
         verbose_name='Название жанра',
+        max_length=50
         )
     slug = models.SlugField(
         unique=True,
@@ -58,6 +60,7 @@ class Title(models.Model):
         )
     name = models.CharField(
         verbose_name='Название',
+        max_length=50
         )
     year = models.IntegerField(
         verbose_name='Год выпуска',
