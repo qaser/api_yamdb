@@ -10,7 +10,6 @@ User = get_user_model()
 class Category(models.Model):
     name = models.CharField(
         verbose_name='Название категории объекта',
-        max_length=50
     )
     slug = models.SlugField(unique=True, verbose_name="Поле slug")
 
@@ -21,7 +20,6 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(
         verbose_name='Название жанра',
-        max_length=50
     )
     slug = models.SlugField(unique=True, verbose_name="Поле slug")
 
@@ -37,8 +35,6 @@ class Title(models.Model):
     )
     year = models.IntegerField(
         verbose_name='Год выпуска',
-        null=True,
-        blank=True
     )
     rating = models.IntegerField(
         verbose_name='Рейтинг на основе отзывов, если отзывов — `None`',
