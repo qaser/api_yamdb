@@ -7,21 +7,14 @@ from .models import Comment, Review, Category, Genre, Title, User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = '__all__'
+ 
+    date_joined = serializers.ReadOnlyField()
+ 
+    class Meta(object):
         model = User
-
-
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = ('name', 'slug')
-        model = Category
-
-
-class GenreSerializer(serializers.ModelSerializer):
-    class Meta:
-        fields = ('name', 'slug')
-        model = Genre
+        fields = ('id', 'email', 'first_name', 'last_name',
+                  'date_joined', 'password')
+        extra_kwargs = {'password': {'write_only': True}}
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -30,24 +23,11 @@ class ReviewSerializer(serializers.ModelSerializer):
         slug_field='username',
         many=False
     )
-#    title = serializers.SlugRelatedField(
-#        read_only=True,
-#        slug_field='description',
-#        many=False
-#    )
 
     class Meta:
         fields = '__all__'
-#        fields = ('id', 'text', 'author', 'score', 'pub_date')
         model = Review
         read_only_fields = ('id', 'pub_date')
-        exclude = ['title']  # исключаю поле 'title'
-#        validators =  [
-#            UniqueTogetherValidator(
-#                queryset=Review.objects.all(),
-#                fields=['author', 'title']
-#            )
-#        ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -60,7 +40,18 @@ class CommentSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
         read_only_fields = ('id', 'pub_date')
-#        exclude = ['review']
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+         fields = ('name', 'slug')
+         model = Category
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+         fields = ('name', 'slug')
+         model = Genre
 
 
 class TitlePostSerializer(serializers.ModelSerializer):
