@@ -19,9 +19,10 @@ class AdminOrReadOnly(permissions.BasePermission):
             and request.user.is_authenticated
         )
 
+
 class ModeratorOrReadOnly(permissions.BasePermission):
 
-    def has_object_permission(self,request, view, obj):
+    def has_object_permission(self.request, view, obj):
         return (
             request.method in permissions.SAFE_METHODS
             or obj.author != request.user)
