@@ -1,9 +1,9 @@
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.utils import timezone
-from django.db import models
 from django.contrib.auth import get_user_model
-from django.db.models.deletion import CASCADE
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.db.models.deletion import CASCADE
+from django.utils import timezone
 
 User = get_user_model()
 

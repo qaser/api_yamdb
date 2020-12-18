@@ -1,28 +1,29 @@
-from django.db.models.base import Model
-from django.db.models import Avg
 from django.db import IntegrityError
-from django.http import response
+from django.db.models import Avg
+from django.db.models.base import Model
 from django.shortcuts import render
-from rest_framework import serializers, status
-from rest_framework import permissions
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ParseError
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.exceptions import ParseError
-from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Category, Comment, Review, Title, User, Genre
+from .models import Category, Comment, Genre, Review, Title, User
 from .pagination import CustomPagination
-from .permissions import IsAuthorOrReadOnlyPermission, AdminOrReadOnly, AdminPermission # ReviewCommentPermission
-from .serializers import (CommentSerializer, ReviewSerializer, UserSerializer,
-                          TitlePostSerializer, TitleListSerializer, CategorySerializer,
-                           GenreSerializer)
+from .permissions import (AdminOrReadOnly,  # ReviewCommentPermission
+                          AdminPermission, IsAuthorOrReadOnlyPermission)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, ReviewSerializer,
+                          TitleListSerializer, TitlePostSerializer,
+                          UserSerializer)
+
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
@@ -87,9 +88,10 @@ class TitleViewSet(ModelViewSet):
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-#    pagination_class = CustomPagination
+    pagination_class = CustomPagination
 #    permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [SearchFilter]
+#    filter_backends = [DjangoFilterBackend]
     filterset_fields = ['name']
     lookup_field = 'slug'
 
@@ -97,9 +99,10 @@ class CategoryViewSet(ModelViewSet):
 class GenreViewSet(ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-#    pagination_class = CustomPagination
+    pagination_class = CustomPagination
 #    permission_classes = [IsAuthenticatedOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [SearchFilter]
+#    filter_backends = [DjangoFilterBackend]
     filterset_fields = ['name']
     lookup_field = 'slug'
 
