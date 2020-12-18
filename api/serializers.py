@@ -23,15 +23,6 @@ class GenreSerializer(serializers.ModelSerializer):
         model = Genre
 
 
-class TitleListSerializer(serializers.ModelSerializer):
-    category = CategorySerializer()
-    genre = GenreSerializer(many=True)
-
-    class Meta:
-         fields = '__all__'
-         model = Title
-
-
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
@@ -83,6 +74,14 @@ class TitlePostSerializer(serializers.ModelSerializer):
         many=True,
         queryset=Genre.objects.all()
     )
+
+    class Meta:
+         fields = '__all__'
+         model = Title
+
+class TitleListSerializer(serializers.ModelSerializer):
+    category = CategorySerializer()
+    genre = GenreSerializer(many=True)
 
     class Meta:
          fields = '__all__'
