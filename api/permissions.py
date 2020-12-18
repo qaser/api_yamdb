@@ -18,9 +18,9 @@ class AdminOrReadOnly(BasePermission):
             and request.user.is_authenticated
         )
 
-class IsAuthorOrReadOnlyPermission(BasePermission):
+#class IsAuthorOrReadOnlyPermission(BasePermission):
 
-    def has_object_permission(self, request, view, obj):
+#    def has_object_permission(self, request, view, obj):
 
 class ModeratorOrReadOnly(BasePermission):
 
