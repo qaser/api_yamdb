@@ -27,8 +27,8 @@ from .serializers import (CategorySerializer, CommentSerializer,
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    pagination_class = CustomPagination
-#    permission_classes = (IsAuthenticatedOrReadOnly, ReviewCommentPermission)
+#    pagination_class = CustomPagination
+    permission_classes = [IsAuthenticatedOrReadOnly] # ReviewCommentPermission)
 
     def get_queryset(self):
          # извлекаю id тайтла из url'а
@@ -49,8 +49,8 @@ class ReviewViewSet(ModelViewSet):
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    pagination_class = CustomPagination
-#    permission_classes = (IsAuthenticatedOrReadOnly, ReviewCommentPermission)
+#    pagination_class = CustomPagination
+    permission_classes = [IsAuthenticatedOrReadOnly] # ReviewCommentPermission)
 
     def get_queryset(self):
         title_id = self.kwargs['title_id']
@@ -74,7 +74,7 @@ class CreateUserAPIView(APIView):
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleListSerializer
-    pagination_class = CustomPagination
+#    pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['category', 'genre', 'year', 'name']
@@ -88,22 +88,19 @@ class TitleViewSet(ModelViewSet):
 class CategoryViewSet(ModelViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    pagination_class = CustomPagination
-#    permission_classes = [IsAuthenticatedOrReadOnly]
+#    permission_classes = [AdminOrReadOnly,]
     filter_backends = [SearchFilter]
-#    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['name']
+#    pagination_class = CustomPagination
+    search_fields = ['name', ]
     lookup_field = 'slug'
 
 
 class GenreViewSet(ModelViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    pagination_class = CustomPagination
-#    permission_classes = [IsAuthenticatedOrReadOnly]
+#    pagination_class = CustomPagination
     filter_backends = [SearchFilter]
-#    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['name']
+    filterset_fields = ['name', ]
     lookup_field = 'slug'
 
 
@@ -112,12 +109,12 @@ class UserViewSet(ModelViewSet):
     serializer_class = UserSerializer
     lookup_field = 'username'
 
-#    def get_permissions(self):
-#        if self.action in ['get', 'patch', 'delete']:
-#           permission_classes = [permissions.IsAuthenticated]
-#        else:
-#            permission_classes = [AdminPermission]
-#        return [permission() for permission in permission_classes]
+    def get_permissions(self):
+        if self.action in ['get', 'patch', 'delete']:
+           permission_classes = [IsAuthenticated]
+        else:
+            permission_classes = [AdminPermission]
+        return [permission() for permission in permission_classes]
 
     @action(detail=True, methods=['get', 'patch', 'delete'])
     def get(self, request):

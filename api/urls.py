@@ -18,7 +18,7 @@ router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
 
 urlpatterns = [
     path('v1/', include(router.urls)),
-    path('v1/token/', GetTokenAPIView.as_view(), name='token_obtain_pair'),
-    path('v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('v1/token/', UserViewSet, name='token_obtain_pair'),
+#    path('v1/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('v1/auth/email', CreateUserAPIView.as_view(), name='auth')
 ]

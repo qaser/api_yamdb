@@ -4,8 +4,67 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
 from django.utils import timezone
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, AbstractUser
+from django.conf import settings
 
-User = get_user_model()
+
+#User = get_user_model()
+
+
+# class UserManager(BaseUserManager):
+
+#   def create_user(self, username, email, password):
+#     if not email:
+#       raise ValueError('User must have an email address')
+#     if not username:
+#       raise ValueError('User must have a username')
+
+#     user = self.model(username = username, email = self.normalize_email(email))
+#     user.set_password(password)
+#     user.save(using = self._db)
+#     return user
+
+#   def create_superuser(self, username, email, password):
+#     user = self.create_user(username = username, email = email, password = password)
+#     user.is_staff = True
+#     user.is_admin = True
+#     user.is_superuser = True
+#     user.save(using = self._db)
+#     return user
+
+class User(AbstractUser):
+    ROLE_CHOICES = [
+        ('user', 'user'),
+        ('moderator', 'moderator'),
+        ('admin', 'admin')
+    ]
+    username = models.CharField(max_length = 30, unique = True)
+    email = models.EmailField(max_length = 60, unique = True)
+    first_name = models.CharField(max_length = 30, null = True, blank = True)
+    last_name = models.CharField(max_length = 30, null = True, blank = True)
+    bio = models.TextField()
+    is_staff = models.BooleanField(default = False)
+    is_admin = models.BooleanField(default = False)
+    is_superuser = models.BooleanField(default = False)
+    date_joined = models.DateTimeField(default=timezone.now)
+    role = models.CharField(choices=ROLE_CHOICES, default='user', max_length=20)
+
+    # objects = UserManager()
+
+    # USERNAME_FIELD = 'username'
+    # REQUIRED_FIELDS = ['email']
+
+    # class Meta:
+    #     ordering = ['-date_joined']
+
+    # def __str__(self):
+    #     return self.username
+
+    # def has_perm(self, perm, obj = None):
+    #     return self.is_admin
+
+    # def has_module_perms(self, app_label):
+    #     return True
 
 
 class Category(models.Model):
