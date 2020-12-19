@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model
+#from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -48,23 +48,6 @@ class User(AbstractUser):
     is_superuser = models.BooleanField(default = False)
     date_joined = models.DateTimeField(default=timezone.now)
     role = models.CharField(choices=ROLE_CHOICES, default='user', max_length=20)
-
-    # objects = UserManager()
-
-    # USERNAME_FIELD = 'username'
-    # REQUIRED_FIELDS = ['email']
-
-    # class Meta:
-    #     ordering = ['-date_joined']
-
-    # def __str__(self):
-    #     return self.username
-
-    # def has_perm(self, perm, obj = None):
-    #     return self.is_admin
-
-    # def has_module_perms(self, app_label):
-    #     return True
 
 
 class Category(models.Model):
@@ -144,7 +127,7 @@ class Review(models.Model):
     )
     text = models.TextField('текст отзыва', blank=False)
     author = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
         verbose_name='username пользователя',
         related_name='review_author'
@@ -175,7 +158,7 @@ class Comment(models.Model):
     )
     text = models.TextField('текст отзыва', blank=False, null=False)
     author = models.ForeignKey(
-        User,
+        settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
         verbose_name='username автора комментария',
         related_name='comment_author'
