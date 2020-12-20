@@ -104,17 +104,35 @@ class GenreViewSet(ModelViewSet):
     lookup_field = 'slug'
 
 
+class UserOwnViewSet(ModelViewSet):
+    serializer_class = UserSerializer
+#    queryset = User.objects.all()
+    # def get_queryset(self):
+    #     queryset = User.objects.all()
+    #     username = self.request.query_params.get('username', None)
+    #     if username is not None:
+    #         queryset = queryset.filter(purchaser__username=username)
+    #     return queryset
+    def get_queryset(self):
+        user_email = self.request.query_param.get('email')
+        print(user_email)
+#        queryset = get_object_or_404(User, email=user_email)
+        queryset = User.objects.get(email=user_email)
+#        queryset = User.objects.all()
+        return queryset
+
+
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     lookup_field = 'username'
 
-    def get_permissions(self):
-        if self.action in ['get', 'patch', 'delete']:
-           permission_classes = [IsAuthenticated]
-        else:
-            permission_classes = [AdminPermission]
-        return [permission() for permission in permission_classes]
+    # def get_permissions(self):
+    #     if self.action in ['get', 'patch', 'delete']:
+    #        permission_classes = [IsAuthenticated]
+    #     else:
+    #         permission_classes = [AdminPermission]
+    #     return [permission() for permission in permission_classes]
 
     @action(detail=True, methods=['get', 'patch', 'delete'])
     def get(self, request):
@@ -148,10 +166,19 @@ class GetTokenAPIView(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request):
+        user_email = self.request.query_param.get('email')
+        print(user_email)
         email = request.data.get('email')
         user = get_object_or_404(User, email=email)
         code = request.data.get('confirmation_code')
-        if user.auth_code == code:
+        if user.confirmation_code == code:
             tokens = get_tokens_for_user(user)
             return Response({'massage': tokens})
         return Response({'massage': 'wrong confirmation code'})
+
+# class CreateUserAPIView(APIView):
+#     permission_classes = (AllowAny,)
+
+#     def create_user(self, request):
+#         if 'POST' in request.method:
+

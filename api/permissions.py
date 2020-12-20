@@ -35,7 +35,7 @@ class AdminPermission(permissions.BasePermission):
             and request.user.is_authenticated
         )
 
-'''
+
 class ReviewCommentPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return request.method in permissions.SAFE_METHODS or (
@@ -44,4 +44,3 @@ class ReviewCommentPermission(permissions.BasePermission):
             request.user.role == 'moderator' or
             request.user.is_staff or request.user.is_superuser
         )
-'''

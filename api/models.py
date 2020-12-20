@@ -38,16 +38,16 @@ class User(AbstractUser):
         ('moderator', 'moderator'),
         ('admin', 'admin')
     ]
-    username = models.CharField(max_length = 30, unique = True)
+    username = models.SlugField(max_length = 30, unique = True)
     email = models.EmailField(max_length = 60, unique = True)
     first_name = models.CharField(max_length = 30, null = True, blank = True)
     last_name = models.CharField(max_length = 30, null = True, blank = True)
     bio = models.TextField()
-    is_staff = models.BooleanField(default = False)
-    is_admin = models.BooleanField(default = False)
-    is_superuser = models.BooleanField(default = False)
-    date_joined = models.DateTimeField(default=timezone.now)
+#    is_staff = models.BooleanField(default = False)
+#    is_admin = models.BooleanField(default = False)
+#    is_superuser = models.BooleanField(default = False)
     role = models.CharField(choices=ROLE_CHOICES, default='user', max_length=20)
+    confirmation_code = models.CharField(max_length = 30, default=1)
 
 
 class Category(models.Model):
