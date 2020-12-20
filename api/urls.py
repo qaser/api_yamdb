@@ -17,6 +17,7 @@ router.register('titles', TitleViewSet, basename='titles')
 router.register('categories', CategoryViewSet, basename='category')
 router.register('genres', GenreViewSet, basename='genres')
 router.register(r'users', UserViewSet, basename='users')
+router.register(r'users/me', UserViewSet, basename='user')
 router.register(r'titles/(?P<title_id>\d+)/reviews', ReviewViewSet, basename='reviews')
 router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments', CommentViewSet, basename='comments')
 
@@ -24,9 +25,9 @@ router.register(r'titles/(?P<title_id>\d+)/reviews/(?P<review_id>\d+)/comments',
 urlpatterns = [
     path('v1/', include(router.urls)),
     path(
-        'v1/token/',
+        'v1/auth/token/',
         TokenObtainPairView.as_view(),
-        name='token_obtain_pair'
+        name='get_token'
     ),
     path(
         'v1/token/refresh/',

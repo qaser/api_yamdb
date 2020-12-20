@@ -13,6 +13,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import ParseError
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Comment, Review, Title, User, Genre, Category
 from .pagination import CustomPagination
@@ -109,3 +110,28 @@ class TitleViewSet(ModelViewSet):
         if self.action in ('list', 'retrieve'):
             return TitleListSerializer
         return TitlePostSerializer
+
+
+class GetTokenAPIView(APIView):
+    permission_classes = (AllowAny,)
+
+    def get_tokens_for_user(self, user):
+        refresh = RefreshToken.for_user(user)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
+
+    def post(self, request):
+        email = request.data.get('email')
+        user = get_object_or_404(User, email=email)
+        code = request.data.get('confirmation_code')
+        if user.confirmation_code == code:
+            tokens = self.get_tokens_for_user(user)
+            return Response({'massage': tokens})
+        return Response({'massage': 'wrong confirmation code'})
+
+
+class UserViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
