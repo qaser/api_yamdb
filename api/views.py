@@ -104,24 +104,6 @@ class GenreViewSet(ModelViewSet):
     lookup_field = 'slug'
 
 
-class UserOwnViewSet(ModelViewSet):
-    serializer_class = UserSerializer
-#    queryset = User.objects.all()
-    # def get_queryset(self):
-    #     queryset = User.objects.all()
-    #     username = self.request.query_params.get('username', None)
-    #     if username is not None:
-    #         queryset = queryset.filter(purchaser__username=username)
-    #     return queryset
-    def get_queryset(self):
-        user_email = self.request.query_param.get('email')
-        print(user_email)
-#        queryset = get_object_or_404(User, email=user_email)
-        queryset = User.objects.get(email=user_email)
-#        queryset = User.objects.all()
-        return queryset
-
-
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -154,27 +136,25 @@ class UserViewSet(ModelViewSet):
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-def get_tokens_for_user(user):
-    refresh = RefreshToken.for_user(user)
-
-    return {
-        'refresh': str(refresh),
-        'access': str(refresh.access_token),
-    }
-
 class GetTokenAPIView(APIView):
     permission_classes = (AllowAny,)
 
+    def get_tokens_for_user(self, user):
+        refresh = RefreshToken.for_user(user)
+        return {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
+
     def post(self, request):
-        user_email = self.request.query_param.get('email')
-        print(user_email)
         email = request.data.get('email')
         user = get_object_or_404(User, email=email)
         code = request.data.get('confirmation_code')
         if user.confirmation_code == code:
-            tokens = get_tokens_for_user(user)
+            tokens = self.get_tokens_for_user(user)
             return Response({'massage': tokens})
         return Response({'massage': 'wrong confirmation code'})
+
 
 # class CreateUserAPIView(APIView):
 #     permission_classes = (AllowAny,)
