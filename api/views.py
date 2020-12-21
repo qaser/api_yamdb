@@ -1,10 +1,11 @@
 from django.db import IntegrityError
+from django.db import models
 from django.db.models import Avg
-from django.db.models.base import Model
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status
 from rest_framework import viewsets
+from rest_framework import permissions
 from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
 from rest_framework.filters import SearchFilter
@@ -16,7 +17,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .models import Category, Comment, Genre, Review, Title, User
+from .models import Category, Genre, Review, Title, User
 from .pagination import CustomPagination
 from .permissions import (AdminOrReadOnly, ReviewAndCommentPermission,
                           AdminPermission, IsAuthorOrReadOnlyPermission)
@@ -28,23 +29,27 @@ from .serializers import (CategorySerializer, CommentSerializer,
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthenticatedOrReadOnly, ReviewAndCommentPermission]
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        ReviewAndCommentPermission
+    ]
+
+    def get_title(self):  # DRY function
+        title = get_object_or_404(Title, id=self.kwargs['title_id'])
+        return title
 
     def get_queryset(self):
          # извлекаю id тайтла из url'а
          title_id = self.kwargs['title_id']
          title = get_object_or_404(Title, id=title_id)
          queryset = title.reviews.all()
-         return queryset
-#        return Review.objects.filter(title=self.kwargs.get('title_id'))
+         return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
-        title_id = self.kwargs['title_id']
-        title = get_object_or_404(Title, id=title_id)
         try:
-            serializer.save(author=self.request.user, title=title)
+            serializer.save(author=self.request.user, title=self.get_title())
         except IntegrityError:  # exception raised when dublicate key in DB
-            raise ParseError(detail='Only one review from unique user')  # code=None?
+            raise ParseError(detail='Only one review from unique user')
 
 
 class CommentViewSet(ModelViewSet):
@@ -106,7 +111,7 @@ class MixinClass(
     filter_backends = [SearchFilter]
     search_fields = ['=name']
     lookup_field = 'slug'
-#    permission_classes = (AdminOrReadOnly)
+#    permission_classes = [ReviewAndCommentPermission]
 
 
 class CategoryViewSet(MixinClass):
@@ -126,17 +131,17 @@ class UserViewSet(ModelViewSet):
 
     # def get_permissions(self):
     #     if self.action in ['get', 'patch', 'delete']:
-    #        permission_classes = [IsAuthenticated]
+    #         permission_classes = [IsAuthenticated]
     #     else:
     #         permission_classes = [AdminPermission]
     #     return [permission() for permission in permission_classes]
 
-    # @action(detail=True, methods=['get', 'patch', 'delete'])
-    # def get(self, request):
-    #     user_email = request.user.email
-    #     user = get_object_or_404(User, email=user_email)
-    #     serializer = UserSerializer(user, many=False)
-    #     return Response(serializer.data)
+    @action(detail=True, methods=['get', 'patch'], permission_classes=[IsAuthenticated])
+    def get(self, request):
+        user_email = request.user.email
+        user = get_object_or_404(User, email=user_email)
+        serializer = UserSerializer(user, many=False)
+        return Response(serializer.data)
 
     # def patch(self, request):
     #     user_email = request.user.email
