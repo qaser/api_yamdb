@@ -4,7 +4,7 @@ from .models import Comment, User, Title, Review, Genre, Category
 
 
 class UserAdmin(admin.ModelAdmin):
-    list_display = ('username', 'email', 'role')
+    list_display = ('username', 'email',)
 
 
 admin.site.register(User, UserAdmin)

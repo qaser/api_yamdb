@@ -3,7 +3,8 @@ from django.db.models import Avg
 from django.db.models.base import Model
 from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import status
+from rest_framework import mixins, status
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
 from rest_framework.filters import SearchFilter
@@ -17,7 +18,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Category, Comment, Genre, Review, Title, User
 from .pagination import CustomPagination
-from .permissions import (AdminOrReadOnly,  # ReviewCommentPermission
+from .permissions import (AdminOrReadOnly, ReviewAndCommentPermission,
                           AdminPermission, IsAuthorOrReadOnlyPermission)
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
@@ -27,8 +28,7 @@ from .serializers import (CategorySerializer, CommentSerializer,
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-#    pagination_class = CustomPagination
-    permission_classes = [IsAuthenticatedOrReadOnly] # ReviewCommentPermission)
+    permission_classes = [IsAuthenticatedOrReadOnly, ReviewAndCommentPermission]
 
     def get_queryset(self):
          # извлекаю id тайтла из url'а
@@ -49,16 +49,28 @@ class ReviewViewSet(ModelViewSet):
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-#    pagination_class = CustomPagination
-    permission_classes = [IsAuthenticatedOrReadOnly] # ReviewCommentPermission)
+    pagination_class = CustomPagination
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        ReviewAndCommentPermission
+    ]
+    
+    def get_review(self):  # DRY function
+        review = get_object_or_404(
+            Review, id=self.kwargs['review_id'],
+            title__id=self.kwargs['title_id']
+        )
+        return review
 
     def get_queryset(self):
-        title_id = self.kwargs['title_id']
-        get_object_or_404(Title, id=title_id)  # check Title exist
-        review_id = self.kwargs['review_id']
-        review = get_object_or_404(Review, id=review_id)
-        queryset = review.comments.all()
-        return queryset
+        return self.get_review().comments.all()
+
+    def perform_create(self, serializer):
+        return serializer.save(
+            author=self.request.user,
+            review=self.get_review()
+        )
+
 
 class CreateUserAPIView(APIView):
     permission_classes = (AllowAny,)
@@ -85,23 +97,26 @@ class TitleViewSet(ModelViewSet):
         return TitlePostSerializer
 
 
-class CategoryViewSet(ModelViewSet):
+class MixinClass(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet
+    ):
+    filter_backends = [SearchFilter]
+    search_fields = ['=name']
+    lookup_field = 'slug'
+#    permission_classes = (AdminOrReadOnly)
+
+
+class CategoryViewSet(MixinClass):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-#    permission_classes = [AdminOrReadOnly,]
-    filter_backends = [SearchFilter]
-#    pagination_class = CustomPagination
-    search_fields = ['name', ]
-    lookup_field = 'slug'
 
 
-class GenreViewSet(ModelViewSet):
+class GenreViewSet(MixinClass):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-#    pagination_class = CustomPagination
-    filter_backends = [SearchFilter]
-    filterset_fields = ['name', ]
-    lookup_field = 'slug'
 
 
 class UserViewSet(ModelViewSet):
@@ -116,24 +131,24 @@ class UserViewSet(ModelViewSet):
     #         permission_classes = [AdminPermission]
     #     return [permission() for permission in permission_classes]
 
-    @action(detail=True, methods=['get', 'patch', 'delete'])
-    def get(self, request):
-        user_email = request.user.email
-        user = get_object_or_404(User, email=user_email)
-        serializer = UserSerializer(user, many=False)
-        return Response(serializer.data)
+    # @action(detail=True, methods=['get', 'patch', 'delete'])
+    # def get(self, request):
+    #     user_email = request.user.email
+    #     user = get_object_or_404(User, email=user_email)
+    #     serializer = UserSerializer(user, many=False)
+    #     return Response(serializer.data)
 
-    def patch(self, request):
-        user_email = request.user.email
-        user = get_object_or_404(User, email=user_email)
-        serializer = UserSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # def patch(self, request):
+    #     user_email = request.user.email
+    #     user = get_object_or_404(User, email=user_email)
+    #     serializer = UserSerializer(user, data=request.data, partial=True)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request):
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    # def delete(self, request):
+    #     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
 class GetTokenAPIView(APIView):
@@ -162,3 +177,21 @@ class GetTokenAPIView(APIView):
 #     def create_user(self, request):
 #         if 'POST' in request.method:
 
+
+# class CategoryViewSet(ModelViewSet):
+#     queryset = Category.objects.all()
+#     serializer_class = CategorySerializer
+# #    permission_classes = [AdminOrReadOnly,]
+#     filter_backends = [SearchFilter]
+# #    pagination_class = CustomPagination
+#     search_fields = ['name', ]
+#     lookup_field = 'slug'
+
+
+# class GenreViewSet(ModelViewSet):
+#     queryset = Genre.objects.all()
+#     serializer_class = GenreSerializer
+# #    pagination_class = CustomPagination
+#     filter_backends = [SearchFilter]
+#     filterset_fields = ['name', ]
+#     lookup_field = 'slug'

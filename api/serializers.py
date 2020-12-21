@@ -7,6 +7,7 @@ from .models import Category, Comment, Genre, Review, Title, User
 
 
 class UserSerializer(serializers.ModelSerializer):
+#    role = serializers.CharField(max_length=100, source='user_data.role', required=False,)
 
     class Meta:
         model = User
@@ -24,8 +25,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = '__all__'
+#        fields = ('id', 'title','text', 'author', 'score', 'pub_date')
         model = Review
-        read_only_fields = ('id', 'pub_date')
+#        read_only_fields = ('pub_date',)
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -37,7 +39,6 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
-        read_only_fields = ('id', 'pub_date')
 
 
 class CategorySerializer(serializers.ModelSerializer):

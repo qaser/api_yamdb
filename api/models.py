@@ -2,52 +2,44 @@
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models.deletion import CASCADE
+from django.db.models.deletion import CASCADE, PROTECT, SET_DEFAULT, SET_NULL
 from django.utils import timezone
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, AbstractUser
 from django.conf import settings
+from django.dispatch import receiver
+from django.db.models.signals import post_save
 
 
-#User = get_user_model()
+class Role(models.TextChoices):
+    ADMIN = 'admin'
+    USER = 'user'
+    MODERATOR = 'moderator'
 
-
-# class UserManager(BaseUserManager):
-
-#   def create_user(self, username, email, password):
-#     if not email:
-#       raise ValueError('User must have an email address')
-#     if not username:
-#       raise ValueError('User must have a username')
-
-#     user = self.model(username = username, email = self.normalize_email(email))
-#     user.set_password(password)
-#     user.save(using = self._db)
-#     return user
-
-#   def create_superuser(self, username, email, password):
-#     user = self.create_user(username = username, email = email, password = password)
-#     user.is_staff = True
-#     user.is_admin = True
-#     user.is_superuser = True
-#     user.save(using = self._db)
-#     return user
 
 class User(AbstractUser):
-    ROLE_CHOICES = [
-        ('user', 'user'),
-        ('moderator', 'moderator'),
-        ('admin', 'admin')
+    CHOICE_ROLE = [
+        ('admin', 'Администратор'),
+        ('user', 'Пользователь'),
+        ('moderator', 'Модератор'),
     ]
-    username = models.SlugField(max_length = 30, unique = True)
+
+    username = models.CharField(max_length = 30, unique = True)
     email = models.EmailField(max_length = 60, unique = True)
     first_name = models.CharField(max_length = 30, null = True, blank = True)
     last_name = models.CharField(max_length = 30, null = True, blank = True)
-    bio = models.TextField()
-#    is_staff = models.BooleanField(default = False)
-#    is_admin = models.BooleanField(default = False)
-#    is_superuser = models.BooleanField(default = False)
-    role = models.CharField(choices=ROLE_CHOICES, default='user', max_length=20)
+    bio = models.TextField(blank=True)
+    role = models.CharField(max_length=30, choices=Role.choices, default=Role.USER)
     confirmation_code = models.CharField(max_length = 30, default=1)
+
+    
+    # @receiver(post_save, sender=settings.AUTH_USER_MODEL)
+    # def create_user_profile(sender, instance, created, **kwargs):
+    #     if created:
+    #        Profile.objects.create(user=instance)
+
+    # @receiver(post_save, sender=settings.AUTH_USER_MODEL)
+    # def save_user_profile(sender, instance, **kwargs):
+    #     instance.profile.save()
 
 
 class Category(models.Model):
@@ -93,7 +85,7 @@ class Title(models.Model):
     rating = models.IntegerField(
         verbose_name='Рейтинг на основе отзывов, если отзывов — `None`',
         null=True,
-        blank=True,
+        blank=True
         )
     description = models.TextField(
         verbose_name='Описание',
@@ -143,8 +135,11 @@ class Review(models.Model):
     )
 
     class Meta:
-#        ordering = ('-pub_date',)
-        unique_together = ['author', 'title']
+        ordering = ('-pub_date',)
+#        unique_together = ['author', 'title']
+    class Meta:
+#        unique_together = ("author", "title")
+        constraints = [models.UniqueConstraint(fields=['title', 'author'], name='unique_review')]
 
 
 class Comment(models.Model):
@@ -161,7 +156,7 @@ class Comment(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
         verbose_name='username автора комментария',
-        related_name='comment_author'
+        related_name='comments'
     )
     pub_date = models.DateTimeField(
         'дата публикации комментария',
