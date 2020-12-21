@@ -17,7 +17,8 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Comment, Review, Title, User, Genre, Category
 from .pagination import CustomPagination
-from .permissions import IsAuthorOrReadOnlyPermission, AdminOrReadOnly
+from .permissions import (IsAuthorOrReadOnlyPermission, AdminOrReadOnly,
+                          ReviewAndCommentPermission)
 from .serializers import (
     CommentSerializer,
     ReviewSerializer,
