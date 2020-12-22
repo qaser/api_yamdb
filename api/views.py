@@ -1,12 +1,16 @@
+from django.db.models.aggregates import Avg
+from .filters import TitleFilter
+from .pagination import CustomPagination
 from django.conf import settings
 from django.db import IntegrityError
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_protect
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import mixins, status
+from rest_framework import mixins, serializers, status
 from rest_framework import viewsets
 from django.core.mail import send_mail
-from rest_framework.decorators import action, api_view
+from rest_framework import permissions
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import ParseError
 from rest_framework import filters
 from rest_framework.generics import get_object_or_404
@@ -18,7 +22,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.models import BaseUserManager
 
 from .models import Category, Genre, Review, Title, User
-from .permissions import AdminOrReadOnly, ReviewAndCommentPermission
+from .permissions import AdminOrReadOnly, AdminPermission, ReviewAndCommentPermission
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
                           TitleListSerializer, TitlePostSerializer,
@@ -27,6 +31,7 @@ from .serializers import (CategorySerializer, CommentSerializer,
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
+    pagination_class = CustomPagination
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReviewAndCommentPermission
@@ -52,6 +57,7 @@ class ReviewViewSet(ModelViewSet):
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
+    pagination_class = CustomPagination
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReviewAndCommentPermission
@@ -90,6 +96,7 @@ class MixinClass(mixins.ListModelMixin, mixins.CreateModelMixin,
     filter_backends = [filters.SearchFilter]
     search_fields = ['=name']
     lookup_field = 'slug'
+    pagination_class = CustomPagination
     permission_classes = [AdminOrReadOnly]
 
 
@@ -106,10 +113,12 @@ class GenreViewSet(MixinClass):
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleListSerializer
-#    pagination_class = CustomPagination
+    pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly, AdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['category', 'genre', 'year', 'name']
+    filterset_class = TitleFilter
+#    filterset_fields = ['category', 'genre', 'year', 'name']
+
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
@@ -140,8 +149,25 @@ class GetTokenAPIView(APIView):
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination
     serializer_class = UserSerializer
     lookup_field = 'username'
+
+    # def get_permissions(self):
+    #     if self.action in ['get', 'patch', 'delete']:
+    #         permission_classes = [permissions.IsAuthenticated]
+    #     else:
+    #         permission_classes = [AdminOrReadOnly]
+    #     return [permission() for permission in permission_classes]
+
+    # @action(detail=True, methods=['get', 'patch', 'delete'])
+    # def get(self, request):
+    #     user_email = request.user.email
+    #     user = get_object_or_404(User, email=user_email)
+    #     serializer = UserSerializer(user, many=False)
+    #     return Response(serializer.data)
+
+    
 
 
 #@csrf_protect

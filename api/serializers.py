@@ -1,4 +1,5 @@
 from django.db.models import Avg
+from django.db.models.fields import CharField
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
 from rest_framework.validators import UniqueTogetherValidator
@@ -72,10 +73,12 @@ class TitleListSerializer(serializers.ModelSerializer):
 
     # represent rating field
     def to_representation(self, instance):
+        data = super(TitleListSerializer, self).to_representation(instance)
         title = get_object_or_404(Title, id=instance.id)
-        review = title.reviews.all()
-        title_rating = review.aggregate(rating=Avg('score'))
-        return title_rating
+        # aggregate вроде как медленно работает, но пока так
+        title_rating = title.reviews.aggregate(Avg('score'))
+        data['rating'] = title_rating.get('score__avg', 0)
+        return data
 
 
 class TitlePostSerializer(serializers.ModelSerializer):

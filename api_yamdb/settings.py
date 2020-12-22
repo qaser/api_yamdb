@@ -112,8 +112,8 @@ REST_FRAMEWORK = {
             'user': '10000/day',
             'anon': '1000/day',
         },
-        'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPagination',
-        'PAGE_SIZE': 10
+       'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPagination',
+       'PAGE_SIZE': 10
     }
 
 
