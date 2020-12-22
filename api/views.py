@@ -1,4 +1,3 @@
-from django.db.models.aggregates import Avg
 from .filters import TitleFilter
 from .pagination import CustomPagination
 from django.conf import settings
@@ -117,6 +116,8 @@ class TitleViewSet(ModelViewSet):
     permission_classes = [IsAuthenticatedOrReadOnly, AdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
+    # фильтры перенёс в отдельный файл filters.py
+    # нужно дорабатывать
 #    filterset_fields = ['category', 'genre', 'year', 'name']
 
 
@@ -151,25 +152,9 @@ class UserViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     serializer_class = UserSerializer
-    lookup_field = 'username'
+    lookup_field = 'username' 
 
-    # def get_permissions(self):
-    #     if self.action in ['get', 'patch', 'delete']:
-    #         permission_classes = [permissions.IsAuthenticated]
-    #     else:
-    #         permission_classes = [AdminOrReadOnly]
-    #     return [permission() for permission in permission_classes]
-
-    # @action(detail=True, methods=['get', 'patch', 'delete'])
-    # def get(self, request):
-    #     user_email = request.user.email
-    #     user = get_object_or_404(User, email=user_email)
-    #     serializer = UserSerializer(user, many=False)
-    #     return Response(serializer.data)
-
-    
-
-
+'''
 #@csrf_protect
 class CreateUserAPIView(APIView):
     def create_new_user(request):
@@ -186,3 +171,4 @@ class CreateUserAPIView(APIView):
             [settings.EMAIL_FILE_PATH],
             fail_silently=False,
         )
+'''
