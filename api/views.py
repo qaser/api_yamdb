@@ -1,19 +1,20 @@
 from django.db import IntegrityError
+from django.shortcuts import render
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, mixins, status, viewsets
+from rest_framework import mixins, status
+from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import ParseError
-from rest_framework.filters import SearchFilter
+from rest_framework import filters
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import (AllowAny, IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Category, Genre, Review, Title, User
-from .pagination import CustomPagination
-from .permissions import (AdminOrReadOnly, IsAuthorOrReadOnlyPermission,
-                          ReviewAndCommentPermission)
+from .permissions import ReviewAndCommentPermission
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
                           TitleListSerializer, TitlePostSerializer,
@@ -105,7 +106,7 @@ class GenreViewSet(MixinClass):
 class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleListSerializer
-    pagination_class = CustomPagination
+#    pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['category', 'genre', 'year', 'name']
@@ -139,3 +140,4 @@ class GetTokenAPIView(APIView):
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    lookup_field = 'username'

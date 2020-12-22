@@ -7,13 +7,11 @@ from .models import Category, Comment, Genre, Review, Title, User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    date_joined = serializers.ReadOnlyField()
 
-    class Meta(object):
+    class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name',
-                  'date_joined', 'password')
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ('first_name', 'last_name', 'username', 'email',
+                  'bio', 'role')
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -26,13 +24,13 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         fields = '__all__'
         model = Review
-        read_only_fields = ('id', 'pub_date')
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=['author', 'title']
-            )
-        ]
+        read_only_fields = ('pub_date',)
+        # validators = [
+        #     UniqueTogetherValidator(
+        #         queryset=Review.objects.all(),
+        #         fields=['title', 'author']
+        #     )
+        # ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -44,18 +42,17 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'text', 'author', 'pub_date')
         model = Comment
-        read_only_fields = ('id', 'pub_date')
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        fields = '__all__'
+        fields = ('name', 'slug') # здесь убрал __all__ согласно redoc
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = '__all__'
+        fields = ('name', 'slug') # здесь убрал __all__ согласно redoc
         model = Genre
 
 
