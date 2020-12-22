@@ -36,8 +36,8 @@ urlpatterns = [
         name='token_refresh'
     ),
     path(
-        'v1/auth/email',
-        CreateUserAPIView.as_view,
+        'v1/auth/email/',
+        CreateUserAPIView,
         name='auth'
     )
 ]

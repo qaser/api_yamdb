@@ -14,6 +14,12 @@ class UserSerializer(serializers.ModelSerializer):
                   'bio', 'role')
 
 
+class NewUserSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ('email',)
+
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,

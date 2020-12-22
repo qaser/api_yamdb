@@ -19,22 +19,29 @@ class User(AbstractUser):
     first_name = models.CharField(max_length = 30, null = True, blank = True)
     last_name = models.CharField(max_length = 30, null = True, blank = True)
     bio = models.TextField(blank=True)
-    role = models.CharField(max_length=30, choices=Role.choices, default=Role.USER)
+    role = models.CharField(
+        max_length=30,
+        choices=Role.choices,
+        default=Role.USER
+    )
     # здесь заглушка в виде дефолтного значения кода
     # нужно будет изменить по мере появления бекэнда по получению юзером кода
     confirmation_code = models.CharField(max_length = 30, default=1)
+
+    class Meta:
+        ordering = ('id',)
 
 
 class Category(models.Model):
     name = models.CharField(
         verbose_name='Название категории объекта',
         max_length=50
-        )
+    )
     slug = models.SlugField(
         unique=True,
-        verbose_name="Поле slug",
+        verbose_name='Поле slug',
         max_length=100
-        )
+    )
 
     class Meta:
         ordering = ('slug',)
@@ -44,11 +51,11 @@ class Genre(models.Model):
     name = models.CharField(
         verbose_name='Название жанра',
         max_length=50
-        )
+    )
     slug = models.SlugField(
         unique=True,
         verbose_name="Поле slug",
-        )
+    )
 
     class Meta:
         ordering = ('slug',)
@@ -58,28 +65,28 @@ class Title(models.Model):
     id = models.AutoField(
         verbose_name='ID произведения',
         primary_key=True,
-        )
+    )
     name = models.CharField(
         verbose_name='Название',
         max_length=50
-        )
+    )
     year = models.IntegerField(
         verbose_name='Год выпуска',
-        )
+    )
     rating = models.IntegerField(
         verbose_name='Рейтинг на основе отзывов, если отзывов — `None`',
         null=True,
         blank=True
-        )
+    )
     description = models.TextField(
         verbose_name='Описание',
-        )
+    )
     genre = models.ManyToManyField(
         Genre,
         verbose_name='Slug жанра',
         related_name='genres',
         blank=True,
-        )
+    )
     category = models.ForeignKey(
         Category,
         verbose_name='Slug категории',
@@ -87,7 +94,7 @@ class Title(models.Model):
         related_name='categories',
         null=True,
         blank=True
-        )
+    )
 
     class Meta:
         ordering = ('id',)
@@ -119,6 +126,7 @@ class Review(models.Model):
     )
 
     class Meta:
+        ordering = ('-pub_date',)
 #        unique_together = ("author", "title")
         constraints = [models.UniqueConstraint(fields=['title', 'author'], name='unique_review')]
 
