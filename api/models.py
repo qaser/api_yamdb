@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.deletion import CASCADE
 from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+from django.utils import timezone
 # from django.dispatch import receiver
 # from django.db.models.signals import post_save
 
@@ -14,11 +15,17 @@ class Role(models.TextChoices):
 
 
 class User(AbstractUser):
-    username = models.CharField(max_length = 30, unique = True)
-    email = models.EmailField(max_length = 60, unique = True)
-    first_name = models.CharField(max_length = 30, null = True, blank = True)
-    last_name = models.CharField(max_length = 30, null = True, blank = True)
-    bio = models.TextField(blank=True)
+    username = models.CharField(
+        max_length=30,
+        unique=True,
+        null=True,
+        blank=True
+    )
+    email = models.EmailField(max_length=60, unique=True)
+    first_name = models.CharField(max_length=30, null=True, blank=True)
+    last_name = models.CharField(max_length=30, null=True, blank=True)
+    bio = models.TextField(blank=True, null=True)
+    date_joined = models.DateTimeField(default=timezone.now)
     role = models.CharField(
         max_length=30,
         choices=Role.choices,
@@ -80,12 +87,15 @@ class Title(models.Model):
     )
     description = models.TextField(
         verbose_name='Описание',
+        null=True,
+        blank=True
     )
     genre = models.ManyToManyField(
         Genre,
         verbose_name='Slug жанра',
         related_name='genres',
         blank=True,
+        null=True
     )
     category = models.ForeignKey(
         Category,
@@ -122,7 +132,7 @@ class Review(models.Model):
     pub_date = models.DateTimeField(
         'дата публикации отзыва',
         auto_now_add=True,
-        db_index=True
+#        db_index=True
     )
 
     class Meta:
