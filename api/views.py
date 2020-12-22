@@ -1,4 +1,3 @@
-from django.db.models.aggregates import Avg
 from .filters import TitleFilter
 from .pagination import CustomPagination
 from django.conf import settings
