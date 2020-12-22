@@ -14,7 +14,6 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('first_name', 'last_name', 'username', 'email',
                   'bio', 'role')
-#        extra_kwargs = {'password': {'write_only': True}}
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -28,7 +27,13 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
 #        fields = ('id', 'title','text', 'author', 'score', 'pub_date')
         model = Review
-#        read_only_fields = ('pub_date',)
+        read_only_fields = ('pub_date',)
+        # validators = [
+        #     UniqueTogetherValidator(
+        #         queryset=Review.objects.all(),
+        #         fields=['title', 'author']
+        #     )
+        # ]
 
 
 class CommentSerializer(serializers.ModelSerializer):

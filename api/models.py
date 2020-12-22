@@ -135,9 +135,6 @@ class Review(models.Model):
     )
 
     class Meta:
-        ordering = ('-pub_date',)
-#        unique_together = ['author', 'title']
-    class Meta:
 #        unique_together = ("author", "title")
         constraints = [models.UniqueConstraint(fields=['title', 'author'], name='unique_review')]
 
