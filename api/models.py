@@ -1,9 +1,9 @@
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
-from django.utils import timezone
-from django.db import models
 from django.contrib.auth import get_user_model
-from django.db.models.deletion import CASCADE
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.db.models.deletion import CASCADE
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -16,10 +16,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     # is_staff = models.BooleanField(default=False)
     # написать поле роли, не знаю какой тип поля
     date_joined = models.DateTimeField(default=timezone.now)
- 
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
- 
+
     def save(self, *args, **kwargs):
         super(User, self).save(*args, **kwargs)
         return self
@@ -33,6 +33,7 @@ class Category(models.Model):
     slug = models.SlugField(
         unique=True,
         verbose_name="Поле slug",
+        max_length=100
         )
 
     class Meta:
