@@ -1,4 +1,3 @@
-from .filters import TitleFilter
 from .pagination import CustomPagination
 from django.conf import settings
 from django.db import IntegrityError
@@ -18,10 +17,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth.models import BaseUserManager
 
 from .models import Category, Genre, Review, Title, User
-from .permissions import AdminOrReadOnly, AdminPermission, ReviewAndCommentPermission
+from .permissions import AdminOrReadOnly, ReviewAndCommentPermission
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
                           TitleListSerializer, TitlePostSerializer,
@@ -114,9 +112,7 @@ class TitleViewSet(ModelViewSet):
     serializer_class = TitleListSerializer
     pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly, AdminOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = TitleFilter
-#    filterset_fields = ['category', 'genre', 'year', 'name']
+    filterset_fields = ['category', 'genre', 'year', 'name']
 
 
     def get_serializer_class(self):
@@ -150,38 +146,4 @@ class UserViewSet(ModelViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = CustomPagination
     serializer_class = UserSerializer
-    lookup_field = 'username'
-
-    # def get_permissions(self):
-    #     if self.action in ['get', 'patch', 'delete']:
-    #         permission_classes = [permissions.IsAuthenticated]
-    #     else:
-    #         permission_classes = [AdminOrReadOnly]
-    #     return [permission() for permission in permission_classes]
-
-    # @action(detail=True, methods=['get', 'patch', 'delete'])
-    # def get(self, request):
-    #     user_email = request.user.email
-    #     user = get_object_or_404(User, email=user_email)
-    #     serializer = UserSerializer(user, many=False)
-    #     return Response(serializer.data)
-
-    
-
-
-#@csrf_protect
-class CreateUserAPIView(APIView):
-    def create_new_user(request):
-        # serial_data = NewUserSerializer(data=request.data)
-        # if serial_data.is_valid:
-        email = request.email
-        user = User.objects.get_or_create(email=email)
-        code = BaseUserManager.make_random_password(lenght=10)
-        print(code)
-        send_mail(
-            'Automatic registration',
-            f'Dear User! For access to API use this code: {code}',
-            'from@example.com',
-            [settings.EMAIL_FILE_PATH],
-            fail_silently=False,
-        )
+    lookup_field = 'username' 
