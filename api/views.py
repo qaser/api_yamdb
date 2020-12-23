@@ -24,6 +24,7 @@ from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
                           TitleListSerializer, TitlePostSerializer,
                           UserSerializer, NewUserSerializer)
+from .filters import TitleFilter         
 
 
 class ReviewViewSet(ModelViewSet):
@@ -111,9 +112,8 @@ class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleListSerializer
     pagination_class = CustomPagination
+    filterset_class = TitleFilter
     permission_classes = [IsAuthenticatedOrReadOnly, AdminOrReadOnly]
-    filterset_fields = ['category', 'genre', 'year', 'name']
-
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
