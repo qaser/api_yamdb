@@ -5,6 +5,7 @@ from .views import CreateUserAPIView, GetTokenAPIView
 from .views import (CommentViewSet, ReviewViewSet, UserViewSet,
                     TitleViewSet, CategoryViewSet, GenreViewSet)
 
+
 router = DefaultRouter()
 router.register('titles', TitleViewSet, basename='titles')
 router.register('categories', CategoryViewSet, basename='category')

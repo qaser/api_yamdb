@@ -1,4 +1,3 @@
-from .filters import TitleFilter
 from .pagination import CustomPagination
 from django.conf import settings
 from django.db import IntegrityError
@@ -18,14 +17,14 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth.models import BaseUserManager
 
 from .models import Category, Genre, Review, Title, User
-from .permissions import AdminOrReadOnly, AdminPermission, ReviewAndCommentPermission
+from .permissions import AdminOrReadOnly, ReviewAndCommentPermission
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
                           TitleListSerializer, TitlePostSerializer,
                           UserSerializer, NewUserSerializer)
+from .filters import TitleFilter         
 
 
 class ReviewViewSet(ModelViewSet):
@@ -113,13 +112,8 @@ class TitleViewSet(ModelViewSet):
     queryset = Title.objects.all()
     serializer_class = TitleListSerializer
     pagination_class = CustomPagination
-    permission_classes = [IsAuthenticatedOrReadOnly, AdminOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
     filterset_class = TitleFilter
-    # фильтры перенёс в отдельный файл filters.py
-    # нужно дорабатывать
-#    filterset_fields = ['category', 'genre', 'year', 'name']
-
+    permission_classes = [IsAuthenticatedOrReadOnly, AdminOrReadOnly]
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):

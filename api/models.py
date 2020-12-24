@@ -1,9 +1,10 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, Permission
 from django.conf import settings
 from django.utils import timezone
+from django.contrib.contenttypes.models import ContentType
 # from django.dispatch import receiver
 # from django.db.models.signals import post_save
 
@@ -37,6 +38,10 @@ class User(AbstractUser):
 
     class Meta:
         ordering = ('id',)
+        permissions = [
+            ('user', 'Обычный пользователь'),
+            ('moderator', 'модератор'),
+        ]
 
 
 class Category(models.Model):
@@ -94,6 +99,7 @@ class Title(models.Model):
         Genre,
         verbose_name='Slug жанра',
         related_name='genres',
+        blank=True,
     )
     category = models.ForeignKey(
         Category,
