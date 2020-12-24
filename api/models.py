@@ -1,10 +1,10 @@
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
-from django.contrib.auth.models import AbstractUser, Permission
-from django.conf import settings
 from django.utils import timezone
-from django.contrib.contenttypes.models import ContentType
+
 # from django.dispatch import receiver
 # from django.db.models.signals import post_save
 
@@ -34,7 +34,7 @@ class User(AbstractUser):
     )
     # здесь заглушка в виде дефолтного значения кода
     # нужно будет изменить по мере появления бекэнда по получению юзером кода
-    confirmation_code = models.CharField(max_length = 30, default=1)
+    confirmation_code = models.CharField(max_length=30, default=1)
 
     class Meta:
         ordering = ('id',)
@@ -66,7 +66,7 @@ class Genre(models.Model):
     )
     slug = models.SlugField(
         unique=True,
-        verbose_name="Поле slug",
+        verbose_name='Поле slug',
     )
 
     class Meta:
@@ -136,13 +136,15 @@ class Review(models.Model):
     pub_date = models.DateTimeField(
         'дата публикации отзыва',
         auto_now_add=True,
-#        db_index=True
     )
 
     class Meta:
         ordering = ('-pub_date',)
-#        unique_together = ("author", "title")
-        constraints = [models.UniqueConstraint(fields=['title', 'author'], name='unique_review')]
+        constraints = [models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique_review'
+            )
+        ]
 
 
 class Comment(models.Model):
@@ -168,21 +170,3 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ('-pub_date',)
-
-'''
-class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(max_length=40, unique=True)
-    first_name = models.CharField(max_length=30, blank=True)
-    last_name = models.CharField(max_length=30, blank=True)
-    is_active = models.BooleanField(default=True)
-    # is_staff = models.BooleanField(default=False)
-    # написать поле роли, не знаю какой тип поля
-    date_joined = models.DateTimeField(default=timezone.now)
- 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
- 
-    def save(self, *args, **kwargs):
-        super(User, self).save(*args, **kwargs)
-        return self
-'''
