@@ -9,7 +9,7 @@ from rest_framework import filters, mixins, serializers, status, viewsets
 # from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import ParseError
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import (AllowAny, IsAuthenticated,
+from rest_framework.permissions import (AllowAny, IsAdminUser, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -141,3 +141,30 @@ class UserViewSet(ModelViewSet):
     pagination_class = CustomPagination
     serializer_class = UserSerializer
     lookup_field = 'username'
+
+    # def get_permissions(self):
+    #     if self.action in ['get', 'patch']:
+    #         permission_classes = [IsAuthenticated]
+    #     else:
+    #         permission_classes = [IsAdminUser]
+    #     return [permission() for permission in permission_classes]
+
+    # @action(detail=True, methods=['get'], permission_classes=[IsAuthenticated], url_path='me')
+    # def get(self, request):
+    #     user_email = request.user.email
+    #     user = get_object_or_404(User, email=user_email)
+    #     serializer = UserSerializer(user, many=False)
+    #     return Response(serializer.data)
+
+#    @action(detail=True, methods=['PATCH'])
+    # def patch(self, request):
+    #     user_email = request.user.email
+    #     user = get_object_or_404(User, email=user_email)
+    #     serializer = UserSerializer(user, data=request.data, partial=True)
+    #     if serializer.is_valid(raise_exception=True):
+    #         serializer.save()
+    #         return Response(serializer.data)
+    #     return Response(serializer.error, status=status.HTTP_400_BAD_REQUEST)
+
+    # def delete(self, request):
+    #     return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
