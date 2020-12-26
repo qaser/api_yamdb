@@ -32,16 +32,7 @@ class User(AbstractUser):
         choices=Role.choices,
         default=Role.USER
     )
-    # здесь заглушка в виде дефолтного значения кода
-    # нужно будет изменить по мере появления бекэнда по получению юзером кода
-    confirmation_code = models.CharField(max_length=30, default=1)
-
-    class Meta:
-        ordering = ('id',)
-        permissions = [
-            ('user', 'Обычный пользователь'),
-            ('moderator', 'модератор'),
-        ]
+    confirmation_code = models.CharField(max_length=20)
 
 
 class Category(models.Model):
@@ -86,7 +77,7 @@ class Title(models.Model):
         verbose_name='Год выпуска',
     )
     rating = models.IntegerField(
-        verbose_name='Рейтинг на основе отзывов, если отзывов — `None`',
+        verbose_name='Рейтинг на основе отзывов',
         null=True,
         blank=True
     )

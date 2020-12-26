@@ -1,8 +1,9 @@
 from rest_framework import permissions
 
+from .models import Role
 
-# из пермишенов для части 'part_c' нужен только ReviewAndCommentPermission
-# остальные можно подчистить если они не нужны вам
+
+# разрешения для ревью и комментов
 class ReviewAndCommentPermission(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
@@ -13,16 +14,7 @@ class ReviewAndCommentPermission(permissions.BasePermission):
         )
 
 
-class IsAuthorOrReadOnlyPermission(permissions.BasePermission):
-
-    def has_object_permission(self, request, view, obj):
-        return (
-            request.method in permissions.SAFE_METHODS
-            or obj.author == request.user
-        )
-
-
-# этот пермишен для жанров и категорий
+# разрешения для жанров и категорий
 class AdminOrReadOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
@@ -33,20 +25,9 @@ class AdminOrReadOnly(permissions.BasePermission):
         )
 
 
-class ModeratorOrReadOnly(permissions.BasePermission):
-
-    def has_object_permission(self, request, view, obj):
-        return (
-            request.method in permissions.SAFE_METHODS or
-            obj.author != request.user
-        )
-
-
+# разрешения для users/
 class AdminPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
-        return (
-            request.method in permissions.SAFE_METHODS or
-            request.user and request.user.is_staff
-            and request.user.is_authenticated
-        )
+        if request.user.is_authenticated:
+            return request.user.role == Role.ADMIN or request.user.is_superuser
