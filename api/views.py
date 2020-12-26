@@ -1,13 +1,11 @@
+from django.contrib.auth.base_user import BaseUserManager
 from .pagination import CustomPagination
 from django.conf import settings
 from django.db import IntegrityError
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_protect
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import mixins, serializers, status
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import mixins, status
 from rest_framework import viewsets
 from django.core.mail import send_mail
-from rest_framework import permissions
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import ParseError
 from rest_framework import filters
@@ -19,7 +17,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Category, Genre, Review, Title, User
-from .permissions import AdminOrReadOnly, ReviewAndCommentPermission
+from .permissions import AdminOrReadOnly, AdminPermission, ReviewAndCommentPermission
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
                           TitleListSerializer, TitlePostSerializer,
@@ -40,10 +38,6 @@ class ReviewViewSet(ModelViewSet):
         return title
 
     def get_queryset(self):
-         # извлекаю id тайтла из url'а
-         title_id = self.kwargs['title_id']
-         title = get_object_or_404(Title, id=title_id)
-         queryset = title.reviews.all()
          return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
@@ -76,17 +70,6 @@ class CommentViewSet(ModelViewSet):
             author=self.request.user,
             review=self.get_review()
         )
-
-
-class CreateUserAPIView(APIView):
-    permission_classes = (AllowAny,)
-
-    def post(self, request):
-        user = request.data
-        serializer = UserSerializer(data=user)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class MixinClass(mixins.ListModelMixin, mixins.CreateModelMixin,
@@ -143,26 +126,43 @@ class GetTokenAPIView(APIView):
 
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
-    permission_classes = [IsAuthenticated]
-    pagination_class = CustomPagination
+    permission_classes = [AdminPermission]
     serializer_class = UserSerializer
-    lookup_field = 'username' 
+    lookup_field = 'username'
 
-'''
-#@csrf_protect
-class CreateUserAPIView(APIView):
-    def create_new_user(request):
-        # serial_data = NewUserSerializer(data=request.data)
-        # if serial_data.is_valid:
-        email = request.email
-        user = User.objects.get_or_create(email=email)
-        code = BaseUserManager.make_random_password(lenght=10)
-        print(code)
-        send_mail(
-            'Automatic registration',
-            f'Dear User! For access to API use this code: {code}',
-            'from@example.com',
-            [settings.EMAIL_FILE_PATH],
-            fail_silently=False,
-        )
-'''
+    @action(methods=['GET', 'PATCH'], detail=False, permission_classes=[IsAuthenticated])
+    def me(self, request):
+        user = request.user
+        if request.method == 'GET':
+            serializer = UserSerializer(user)
+            return Response(serializer.data)
+        elif request.method == 'PATCH':
+            serializer = UserSerializer(user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes(AllowAny)
+def create_new_user(request):
+    email = request.POST.get('email')
+    password = BaseUserManager.make_random_password(20)
+    username = email.split('@')[0]
+    user = User.objects.create(
+        email=email,
+        username=username,
+        password=password,
+        confirmation_code=password  # дублирую пароль в качестве кода доступа
+    )
+    send_mail(
+        'Automatic registration',
+        f'Dear User! For access to API use this code: {password}',
+        'YAMdb@mail.com',
+        [settings.EMAIL_FILE_PATH],
+        fail_silently=False,
+    )
+    serializer = NewUserSerializer(user, data=email)
+    serializer.is_valid()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)

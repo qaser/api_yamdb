@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import CreateUserAPIView, GetTokenAPIView
+from .views import GetTokenAPIView, create_new_user
 from .views import (CommentViewSet, ReviewViewSet, UserViewSet,
                     TitleViewSet, CategoryViewSet, GenreViewSet)
 
@@ -38,7 +38,7 @@ urlpatterns = [
     ),
     path(
         'v1/auth/email/',
-        CreateUserAPIView,
+        create_new_user,
         name='auth'
     )
 ]

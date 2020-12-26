@@ -1,8 +1,6 @@
 from django.db.models import Avg
-from django.db.models.fields import CharField
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
-from rest_framework.validators import UniqueTogetherValidator
 
 from .models import Category, Comment, Genre, Review, Title, User
 
@@ -21,6 +19,7 @@ class NewUserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('email',)
 
+
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True,
@@ -32,12 +31,6 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Review
         read_only_fields = ('pub_date',)
-        # validators = [
-        #     UniqueTogetherValidator(
-        #         queryset=Review.objects.all(),
-        #         fields=['title', 'author']
-        #     )
-        # ]
 
 
 class CommentSerializer(serializers.ModelSerializer):
@@ -53,13 +46,13 @@ class CommentSerializer(serializers.ModelSerializer):
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('name', 'slug') # здесь убрал __all__ согласно redoc
+        fields = ('name', 'slug')
         model = Category
 
 
 class GenreSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('name', 'slug') # здесь убрал __all__ согласно redoc
+        fields = ('name', 'slug')
         model = Genre
 
 
@@ -76,6 +69,8 @@ class TitleListSerializer(serializers.ModelSerializer):
         data = super(TitleListSerializer, self).to_representation(instance)
         title = get_object_or_404(Title, id=instance.id)
         # aggregate вроде как медленно работает, но пока так
+        # можно попытаться сделать в queryset'е через annotate
+        # но на выходе получаю не то, то нужно
         title_rating = title.reviews.aggregate(Avg('score'))
         data['rating'] = title_rating.get('score__avg', 0)
         return data
