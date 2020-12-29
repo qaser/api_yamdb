@@ -5,9 +5,6 @@ from django.db import models
 from django.db.models.deletion import CASCADE
 from django.utils import timezone
 
-# from django.dispatch import receiver
-# from django.db.models.signals import post_save
-
 
 class Role(models.TextChoices):
     ADMIN = 'admin'
@@ -122,7 +119,7 @@ class Review(models.Model):
     )
     score = models.IntegerField(
         'оценка',
-        validators=[MinValueValidator(1), MaxValueValidator(10)]
+        validators=[MinValueValidator(1)]
     )
     pub_date = models.DateTimeField(
         'дата публикации отзыва',
