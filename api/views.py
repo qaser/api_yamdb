@@ -39,10 +39,7 @@ class ReviewViewSet(ModelViewSet):
         return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
-        try:
-            serializer.save(author=self.request.user, title=self.get_title())
-        except IntegrityError:  # exception raised when dublicate key in DB
-            raise ParseError(detail='Only one review from unique user')
+        serializer.save(author=self.request.user, title=self.get_title())
 
 
 class CommentViewSet(ModelViewSet):
