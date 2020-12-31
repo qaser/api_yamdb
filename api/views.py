@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 from django.core.mail import send_mail
@@ -85,8 +86,7 @@ class GenreViewSet(MixinClass):
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all().annotate(rating=Avg('reviews__score'))
-    serializer_class = TitleListSerializer
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     filterset_class = TitleFilter
     permission_classes = [IsAuthenticatedOrReadOnly, AdminOrReadOnly]
 
@@ -116,7 +116,7 @@ class GetTokenAPIView(APIView):
         return Response({'massage': 'wrong confirmation code'})
 
 
-class UserViewSet(ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     permission_classes = [AdminPermission]
     serializer_class = UserSerializer

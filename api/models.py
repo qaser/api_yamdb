@@ -5,7 +5,9 @@ from django.db import models
 from django.db.models.deletion import CASCADE
 from django.utils import timezone
 from django.utils.deconstruct import deconstructible
+from datetime import datetime as dt
 
+current_year = dt.now().year
 
 @deconstructible
 class MaxValueValidator(BaseValidator):
@@ -81,22 +83,15 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    id = models.AutoField(
-        verbose_name='ID произведения',
-        primary_key=True,
-    )
     name = models.CharField(
         verbose_name='Название',
         max_length=50
     )
-    year = models.IntegerField(
+    year = models.PositiveIntegerField(
         verbose_name='Год выпуска',
-    )
-    # rating = models.IntegerField(
-    #     verbose_name='Рейтинг на основе отзывов',
-    #     null=True,
-    #     blank=True
-    # )
+        db_index=True,
+        validators=[MaxValueValidator(current_year+1)]
+        )
     description = models.TextField(
         verbose_name='Описание',
         null=True,
@@ -105,7 +100,6 @@ class Title(models.Model):
     genre = models.ManyToManyField(
         Genre,
         verbose_name='Slug жанра',
-        related_name='genres',
         blank=True,
     )
     category = models.ForeignKey(
