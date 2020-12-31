@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.db.models import Avg
 
 from .filters import TitleFilter
 from .models import Category, Genre, Review, Title, User
@@ -87,7 +88,7 @@ class GenreViewSet(MixinClass):
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.all().annotate(rating=Avg('reviews__score'))
     serializer_class = TitleListSerializer
     filterset_class = TitleFilter
     permission_classes = [IsAuthenticatedOrReadOnly, AdminOrReadOnly]

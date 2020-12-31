@@ -28,11 +28,11 @@ urls_auth = [
         GetTokenAPIView.as_view(),
         name='get_token'
     ),
-    path(
-        'token/refresh/',
-        TokenRefreshView.as_view(),
-        name='token_refresh'
-    ),
+    # path(
+    #     'token/refresh/',
+    #     TokenRefreshView.as_view(),
+    #     name='token_refresh'
+    # ),
     path(
         'email/',
         create_new_user,
