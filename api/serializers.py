@@ -66,13 +66,9 @@ class TitleListSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Title
 
-    # represent rating field
     def to_representation(self, instance):
         data = super(TitleListSerializer, self).to_representation(instance)
         title = get_object_or_404(Title, id=instance.id)
-        # aggregate вроде как медленно работает, но пока так
-        # можно попытаться сделать в queryset'е через annotate
-        # но на выходе получаю не то, то нужно
         title_rating = title.reviews.aggregate(Avg('score'))
         data['rating'] = title_rating.get('score__avg', 0)
         return data
