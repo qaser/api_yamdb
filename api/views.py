@@ -1,50 +1,42 @@
-from .pagination import CustomPagination
+from django.db.models import Avg
 from django.conf import settings
-from django.db import IntegrityError
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_protect
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import mixins, serializers, status
-from rest_framework import viewsets
+from django.contrib.auth.base_user import BaseUserManager
 from django.core.mail import send_mail
-from rest_framework import permissions
+from django.db import IntegrityError
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.exceptions import ParseError
-from rest_framework import filters
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .filters import TitleFilter
 from .models import Category, Genre, Review, Title, User
-from .permissions import AdminOrReadOnly, ReviewAndCommentPermission, AdminPermission
-from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, ReviewSerializer,
-                          TitleListSerializer, TitlePostSerializer,
-                          UserSerializer, NewUserSerializer)
-from .filters import TitleFilter         
+from .permissions import (AdminOrReadOnly, AdminPermission,
+                          ReviewAndCommentPermission)
+from .serializers import (
+    CategorySerializer, CommentSerializer, GenreSerializer, NewUserSerializer,
+    ReviewSerializer, TitleListSerializer, TitlePostSerializer, UserSerializer)
 
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
-    pagination_class = CustomPagination
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReviewAndCommentPermission
     ]
 
-    def get_title(self):  # DRY function
+    def get_title(self):  # DRY function for extract 'id' from url and check
         title = get_object_or_404(Title, id=self.kwargs['title_id'])
         return title
 
     def get_queryset(self):
-         # извлекаю id тайтла из url'а
-         title_id = self.kwargs['title_id']
-         title = get_object_or_404(Title, id=title_id)
-         queryset = title.reviews.all()
-         return self.get_title().reviews.all()
+        return self.get_title().reviews.all()
 
     def perform_create(self, serializer):
         try:
@@ -55,12 +47,11 @@ class ReviewViewSet(ModelViewSet):
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
-    pagination_class = CustomPagination
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReviewAndCommentPermission
     ]
-    
+
     def get_review(self):  # DRY function
         review = get_object_or_404(
             Review, id=self.kwargs['review_id'],
@@ -78,23 +69,11 @@ class CommentViewSet(ModelViewSet):
         )
 
 
-class CreateUserAPIView(APIView):
-    permission_classes = (AllowAny,)
-
-    def post(self, request):
-        user = request.data
-        serializer = UserSerializer(data=user)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
 class MixinClass(mixins.ListModelMixin, mixins.CreateModelMixin,
                  mixins.DestroyModelMixin, viewsets.GenericViewSet):
     filter_backends = [filters.SearchFilter]
     search_fields = ['=name']
     lookup_field = 'slug'
-    pagination_class = CustomPagination
     permission_classes = [AdminOrReadOnly]
 
 
@@ -109,9 +88,7 @@ class GenreViewSet(MixinClass):
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.all()
-    serializer_class = TitleListSerializer
-    pagination_class = CustomPagination
+    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
     filterset_class = TitleFilter
     permission_classes = [IsAuthenticatedOrReadOnly, AdminOrReadOnly]
 
@@ -143,26 +120,47 @@ class GetTokenAPIView(APIView):
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
+    permission_classes = [AdminPermission]
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated, AdminPermission]
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['username']
     lookup_field = 'username'
 
     @action(
+        methods=['GET', 'PATCH'],
         detail=False,
-        methods=['get', 'patch'],
-        permission_classes=[permissions.IsAuthenticated]
+        permission_classes=[IsAuthenticated]
     )
     def me(self, request):
-        permission_classes=[permissions.IsAuthenticated]
-        user = get_object_or_404(User, id=request.user.id)
+        user = request.user
         if request.method == 'GET':
-            serializer = UserSerializer(user, many=False)
+            serializer = UserSerializer(user)
             return Response(serializer.data)
-        if request.method == 'PATCH':
-            serializer = UserSerializer(user, data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            
+        elif request.method == 'PATCH':
+            serializer = UserSerializer(user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes(AllowAny)
+def create_new_user(request):
+    email = request.POST.get('email')
+    password = BaseUserManager.make_random_password(20)
+    username = email.split('@')[0]
+    user = User.objects.create(
+        email=email,
+        username=username,
+        password=password,
+        confirmation_code=password  # дублирую пароль в качестве кода доступа
+    )
+    send_mail(
+        'Automatic registration',
+        f'Dear User! For access to API use this code: {password}',
+        'YAMdb@mail.com',
+        [settings.EMAIL_FILE_PATH],
+        fail_silently=False,
+    )
+    serializer = NewUserSerializer(user, data=email)
+    serializer.is_valid()
+    return Response(serializer.data, status=status.HTTP_201_CREATED)

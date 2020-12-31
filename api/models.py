@@ -1,12 +1,30 @@
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.conf import settings
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import BaseValidator, MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
-from django.contrib.auth.models import AbstractUser, Permission
-from django.conf import settings
 from django.utils import timezone
-from django.contrib.contenttypes.models import ContentType
-# from django.dispatch import receiver
-# from django.db.models.signals import post_save
+from django.utils.deconstruct import deconstructible
+from datetime import datetime as dt
+
+current_year = dt.now().year
+
+@deconstructible
+class MaxValueValidator(BaseValidator):
+    message = ('Значение должно быть не выше 10-ти')
+    code = 'max_value'
+
+    def compare(self, a, b):
+        return a > b
+
+
+@deconstructible
+class MinValueValidator(BaseValidator):
+    message = ('Значение должно быть не ниже единицы')
+    code = 'min_value'
+
+    def compare(self, a, b):
+        return a < b
 
 
 class Role(models.TextChoices):
@@ -32,16 +50,7 @@ class User(AbstractUser):
         choices=Role.choices,
         default=Role.USER
     )
-    # здесь заглушка в виде дефолтного значения кода
-    # нужно будет изменить по мере появления бекэнда по получению юзером кода
-    confirmation_code = models.CharField(max_length = 30, default=1)
-
-    class Meta:
-        ordering = ('id',)
-        permissions = [
-            ('user', 'Обычный пользователь'),
-            ('moderator', 'модератор'),
-        ]
+    confirmation_code = models.CharField(max_length=20)
 
 
 class Category(models.Model):
@@ -66,7 +75,7 @@ class Genre(models.Model):
     )
     slug = models.SlugField(
         unique=True,
-        verbose_name="Поле slug",
+        verbose_name='Поле slug',
     )
 
     class Meta:
@@ -74,22 +83,15 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
-    id = models.AutoField(
-        verbose_name='ID произведения',
-        primary_key=True,
-    )
     name = models.CharField(
         verbose_name='Название',
         max_length=50
     )
-    year = models.IntegerField(
+    year = models.PositiveIntegerField(
         verbose_name='Год выпуска',
-    )
-    rating = models.IntegerField(
-        verbose_name='Рейтинг на основе отзывов, если отзывов — `None`',
-        null=True,
-        blank=True
-    )
+        db_index=True,
+        validators=[MaxValueValidator(current_year+1)]
+        )
     description = models.TextField(
         verbose_name='Описание',
         null=True,
@@ -98,7 +100,6 @@ class Title(models.Model):
     genre = models.ManyToManyField(
         Genre,
         verbose_name='Slug жанра',
-        related_name='genres',
         blank=True,
     )
     category = models.ForeignKey(
@@ -126,23 +127,31 @@ class Review(models.Model):
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
-        verbose_name='username пользователя',
+        verbose_name='автор отзыва',
         related_name='review_author'
     )
-    score = models.IntegerField(
+    score = models.PositiveSmallIntegerField(
         'оценка',
         validators=[MinValueValidator(1), MaxValueValidator(10)]
     )
     pub_date = models.DateTimeField(
         'дата публикации отзыва',
         auto_now_add=True,
-#        db_index=True
     )
 
     class Meta:
         ordering = ('-pub_date',)
-#        unique_together = ("author", "title")
-        constraints = [models.UniqueConstraint(fields=['title', 'author'], name='unique_review')]
+        verbose_name = 'отзыв'
+        verbose_name_plural = 'отзывы'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['title', 'author'],
+                name='unique_review'
+            )
+        ]
+
+    def __str__(self):
+        return f'Отзыв на произведение {self.title}. Автор: {self.author}.'
 
 
 class Comment(models.Model):
@@ -154,11 +163,11 @@ class Comment(models.Model):
         null=True,
         blank=True
     )
-    text = models.TextField('текст отзыва', blank=False, null=False)
+    text = models.TextField('текст комментария', blank=False, null=False)
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=CASCADE,
-        verbose_name='username автора комментария',
+        verbose_name='автор комментария',
         related_name='comments'
     )
     pub_date = models.DateTimeField(
@@ -168,21 +177,8 @@ class Comment(models.Model):
 
     class Meta:
         ordering = ('-pub_date',)
+        verbose_name = 'комментарий'
+        verbose_name_plural = 'комментарии'
 
-'''
-class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(max_length=40, unique=True)
-    first_name = models.CharField(max_length=30, blank=True)
-    last_name = models.CharField(max_length=30, blank=True)
-    is_active = models.BooleanField(default=True)
-    # is_staff = models.BooleanField(default=False)
-    # написать поле роли, не знаю какой тип поля
-    date_joined = models.DateTimeField(default=timezone.now)
- 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name', 'last_name']
- 
-    def save(self, *args, **kwargs):
-        super(User, self).save(*args, **kwargs)
-        return self
-'''
+    def __str__(self):
+        return f'Комментарий пользователя {self.author} к отзыву {self.review}'
