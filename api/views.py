@@ -19,7 +19,7 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import Category, Genre, Review, Title, User
-from .permissions import AdminOrReadOnly, ReviewAndCommentPermission
+from .permissions import AdminOrReadOnly, ReviewAndCommentPermission, AdminPermission
 from .serializers import (CategorySerializer, CommentSerializer,
                           GenreSerializer, ReviewSerializer,
                           TitleListSerializer, TitlePostSerializer,
@@ -141,9 +141,28 @@ class GetTokenAPIView(APIView):
         return Response({'massage': 'wrong confirmation code'})
 
 
-class UserViewSet(ModelViewSet):
+class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
-    permission_classes = [IsAuthenticated]
-    pagination_class = CustomPagination
     serializer_class = UserSerializer
-    lookup_field = 'username' 
+    permission_classes = [permissions.IsAuthenticated, AdminPermission]
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['username']
+    lookup_field = 'username'
+
+    @action(
+        detail=False,
+        methods=['get', 'patch'],
+        permission_classes=[permissions.IsAuthenticated]
+    )
+    def me(self, request):
+        permission_classes=[permissions.IsAuthenticated]
+        user = get_object_or_404(User, id=request.user.id)
+        if request.method == 'GET':
+            serializer = UserSerializer(user, many=False)
+            return Response(serializer.data)
+        if request.method == 'PATCH':
+            serializer = UserSerializer(user, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            
