@@ -110,7 +110,7 @@ REST_FRAMEWORK = {
         'anon': '1000/day',
     },
     'DEFAULT_PAGINATION_CLASS': 'api.pagination.CustomPagination',
-    'PAGE_SIZE': 10
+    'PAGE_SIZE': 10  # количество страниц по умолчанию
 }
 
 
