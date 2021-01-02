@@ -14,7 +14,7 @@ class MaxValueValidator(BaseValidator):
 
 @deconstructible
 class MinValueValidator(BaseValidator):
-    message = ('Значение должно быть не ниже %(limit_value)s.')
+    message = _('Значение должно быть не ниже %(limit_value)s.')
     code = 'min_value'
 
     def compare(self, a, b):

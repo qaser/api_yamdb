@@ -10,8 +10,14 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('first_name', 'last_name', 'username', 'email',
-                  'bio', 'role')
+        fields = (
+            'first_name',
+            'last_name',
+            'username',
+            'email',
+            'bio',
+            'role'
+        )
 
 
 class NewUserSerializer(serializers.ModelSerializer):
@@ -74,11 +80,20 @@ class TitleListSerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField(read_only=True)
 
     class Meta:
-        fields = ('id', 'name', 'year', 'description', 'genre', 'rating', 'category')
+        fields = (
+            'id',
+            'name',
+            'year',
+            'description',
+            'genre',
+            'rating',  # из-за этого поля не '__all__'
+            'category'
+        )
         model = Title
 
 
 class TitlePostSerializer(serializers.ModelSerializer):
+    rating = serializers.IntegerField(read_only=True)
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
         slug_field='slug',
@@ -90,5 +105,33 @@ class TitlePostSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'year',
+            'description',
+            'genre',
+            'rating',  # из-за этого поля не '__all__'
+            'category'
+        )
         model = Title
+
+    def to_representation(self, instance):
+        data = super(TitlePostSerializer, self).to_representation(instance)
+        title = Title.objects.get(id=instance.id)
+        # объект ManyToMany не извлекается из instance, это QuerySet
+        title_genre = title.genre.all().values()
+        list_dict =[]
+        # пройдём циклом по переданным в request'е жанрам
+        for i in data['genre']:  # data['genre'] это список слагов жанра
+            genre = title_genre.get(slug=i)
+            dict = {'name': genre['name'], 'slug': genre['slug']}
+            list_dict.append(dict)  # наполняем список жанров словарями
+        data['genre'] = list_dict  # 'рукотворный' JSON-вид
+        data['rating'] = None  # объект только создан, рейтинга нет
+        # с категориями проще, просто берём из instance
+        data['category'] = {
+            'name': instance.category.name,
+            'slug': instance.category.slug
+        }
+        return data

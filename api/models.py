@@ -5,7 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
-from django.utils import timezone
+#from django.utils import timezone
 
 from . import utils
 
@@ -20,84 +20,127 @@ class Role(models.TextChoices):
 
 class User(AbstractUser):
     username = models.CharField(
+        'логин',
         max_length=30,
         unique=True,
         null=True,
         blank=True
     )
-    email = models.EmailField(max_length=60, unique=True)
-    first_name = models.CharField(max_length=30, null=True, blank=True)
-    last_name = models.CharField(max_length=30, null=True, blank=True)
-    bio = models.TextField(blank=True, null=True)
-    date_joined = models.DateTimeField(default=timezone.now)
+    email = models.EmailField(
+        'адрес почты',
+        max_length=200,
+        unique=True
+    )
+    first_name = models.CharField(
+        'имя пользователя',
+        max_length=30,
+        null=True,
+        blank=True
+    )
+    last_name = models.CharField(
+        'фамилия пользователя',
+        max_length=30,
+        null=True,
+        blank=True
+    )
+    bio = models.TextField('биография', blank=True, null=True)
+    date_joined = models.DateTimeField(
+        'дата регистрации',
+        auto_now_add=True
+    )
     role = models.CharField(
+        'роль пользователя',
         max_length=30,
         choices=Role.choices,
         default=Role.USER
     )
     confirmation_code = models.CharField(max_length=20)
 
+    class Meta:
+        ordering = ('email',)
+        verbose_name = 'пользователь'
+        verbose_name_plural = 'пользователи'
+
+    def __str__(self):
+        return self.email
+
 
 class Category(models.Model):
-    name = models.CharField(
-        verbose_name='Название категории объекта',
-        max_length=50
-    )
+    name = models.CharField('название категории', max_length=50)
     slug = models.SlugField(
         unique=True,
-        verbose_name='Поле slug',
+        verbose_name='путь',
         max_length=100
     )
 
     class Meta:
         ordering = ('slug',)
+        verbose_name = 'категория'
+        verbose_name_plural = 'категории'
+
+    def __str__(self):
+        return self.name
 
 
 class Genre(models.Model):
     name = models.CharField(
-        verbose_name='Название жанра',
+        verbose_name='название жанра',
         max_length=50
     )
     slug = models.SlugField(
         unique=True,
-        verbose_name='Поле slug',
+        verbose_name='путь',
     )
 
     class Meta:
         ordering = ('slug',)
+        verbose_name = 'жанр'
+        verbose_name_plural = 'жанры'
+
+    def __str__(self):
+        return self.name
 
 
 class Title(models.Model):
     name = models.CharField(
-        verbose_name='Название',
+        verbose_name='название',
+        db_index=True,
         max_length=50
     )
-    year = models.PositiveIntegerField(
-        verbose_name='Год выпуска',
+    year = models.PositiveSmallIntegerField(
+        verbose_name='год выпуска',
         db_index=True,
         validators=[utils.MaxValueValidator(current_year+1)]
     )
     description = models.TextField(
-        verbose_name='Описание',
+        verbose_name='описание',
         null=True,
         blank=True
     )
     genre = models.ManyToManyField(
         Genre,
-        verbose_name='Slug жанра',
+        verbose_name='жанр',
         blank=True,
+        db_index=True,
+        related_name='title'
     )
     category = models.ForeignKey(
         Category,
-        verbose_name='Slug категории',
+        verbose_name='категория',
         on_delete=models.SET_NULL,
-        related_name='categories',
         null=True,
-        blank=True
+        blank=True,
+        db_index=True,
+        related_name='title'
     )
 
     class Meta:
-        ordering = ('id',)
+        ordering = ('year',)
+        verbose_name = 'произведение'
+        verbose_name_plural = 'произведения'
+
+    def __str__(self):
+        return self.name
 
 
 class Review(models.Model):
