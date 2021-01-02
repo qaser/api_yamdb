@@ -151,7 +151,9 @@ class Review(models.Model):
         ]
 
     def __str__(self):
-        return f'Отзыв на произведение {self.title}. Автор: {self.author}.'
+        if len(self.text) > 30:
+            return self.text + '...'
+        return self.text
 
 
 class Comment(models.Model):
@@ -181,4 +183,6 @@ class Comment(models.Model):
         verbose_name_plural = 'комментарии'
 
     def __str__(self):
-        return f'Комментарий пользователя {self.author} к отзыву {self.review}'
+        if len(self.text) > 30:
+            return self.text + '...'
+        return self.text

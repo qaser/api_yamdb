@@ -1,3 +1,4 @@
+from api.apps import ApiConfig
 from django.contrib import admin
 from importlib import import_module
 from django.apps import apps
@@ -22,4 +23,4 @@ def model_register(*app_list):
                 pass
 
 
-model_register('api',)
+model_register(ApiConfig.name)
