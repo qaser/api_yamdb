@@ -1,30 +1,15 @@
+from datetime import datetime as dt
+
 from django.conf import settings
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import BaseValidator, MaxValueValidator, MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
 from django.utils import timezone
-from django.utils.deconstruct import deconstructible
-from datetime import datetime as dt
+
+from . import utils
 
 current_year = dt.now().year
-
-@deconstructible
-class MaxValueValidator(BaseValidator):
-    message = ('Значение должно быть не выше 10-ти')
-    code = 'max_value'
-
-    def compare(self, a, b):
-        return a > b
-
-
-@deconstructible
-class MinValueValidator(BaseValidator):
-    message = ('Значение должно быть не ниже единицы')
-    code = 'min_value'
-
-    def compare(self, a, b):
-        return a < b
 
 
 class Role(models.TextChoices):
@@ -90,8 +75,8 @@ class Title(models.Model):
     year = models.PositiveIntegerField(
         verbose_name='Год выпуска',
         db_index=True,
-        validators=[MaxValueValidator(current_year+1)]
-        )
+        validators=[utils.MaxValueValidator(current_year+1)]
+    )
     description = models.TextField(
         verbose_name='Описание',
         null=True,
@@ -132,7 +117,7 @@ class Review(models.Model):
     )
     score = models.PositiveSmallIntegerField(
         'оценка',
-        validators=[MinValueValidator(1), MaxValueValidator(10)]
+        validators=[utils.MinValueValidator(1), utils.MaxValueValidator(10)]
     )
     pub_date = models.DateTimeField(
         'дата публикации отзыва',
