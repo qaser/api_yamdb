@@ -33,12 +33,15 @@ class ReviewSerializer(serializers.ModelSerializer):
         exclude_fields = ('title',)
         model = Review
         read_only_fields = ('pub_date',)
-        validators = [
-            UniqueTogetherValidator(
-                queryset=Review.objects.all(),
-                fields=['title', 'author']
-            )
-        ]
+
+    def validate(self, data):
+        title = self.context['view'].kwargs.get('title_id')
+        author = self.context['request'].user
+        message = 'Вы уже оставляли отзыв на данное произведение'
+        check_exists = Review.objects.filter(title=title, author=author).exists()
+        if check_exists == True:
+            raise serializers.ValidationError(message)
+        return data
 
 
 class CommentSerializer(serializers.ModelSerializer):

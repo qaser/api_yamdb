@@ -8,8 +8,9 @@ class ReviewAndCommentPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         return request.method in permissions.SAFE_METHODS or (
             request.user == obj.author or
-            request.user.role == 'admin' or
-            request.user.role == 'moderator'
+            request.user.role == Role.ADMIN or
+            request.user.role == Role.MODERATOR or
+            request.user.role == request.user.is_superuser
         )
 
 
