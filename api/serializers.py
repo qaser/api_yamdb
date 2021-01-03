@@ -1,3 +1,4 @@
+from django.core import validators
 from django.db.models import Avg
 from rest_framework import serializers
 from rest_framework.generics import get_object_or_404
@@ -41,7 +42,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         read_only_fields = ('pub_date',)
 
     def validate(self, data):
-        title = self.context['view'].kwargs.get('title_id')
+        title = self.context.get('request').parser_context['kwargs']['title_id']
         author = self.context['request'].user
         message = 'Вы уже оставляли отзыв на данное произведение'
         check_exists = Review.objects.filter(title=title, author=author).exists()
@@ -80,20 +81,11 @@ class TitleListSerializer(serializers.ModelSerializer):
     rating = serializers.IntegerField(read_only=True)
 
     class Meta:
-        fields = (
-            'id',
-            'name',
-            'year',
-            'description',
-            'genre',
-            'rating',  # из-за этого поля не '__all__'
-            'category'
-        )
+        fields = '__all__'
         model = Title
 
 
 class TitlePostSerializer(serializers.ModelSerializer):
-    rating = serializers.IntegerField(read_only=True)
     category = serializers.SlugRelatedField(
         queryset=Category.objects.all(),
         slug_field='slug',
@@ -103,23 +95,16 @@ class TitlePostSerializer(serializers.ModelSerializer):
         slug_field='slug',
         many=True,
     )
+    rating = serializers.IntegerField(read_only=True)
 
     class Meta:
-        fields = (
-            'id',
-            'name',
-            'year',
-            'description',
-            'genre',
-            'rating',  # из-за этого поля не '__all__'
-            'category'
-        )
+        fields = '__all__'
         model = Title
 
     def to_representation(self, instance):
         data = super(TitlePostSerializer, self).to_representation(instance)
         title = Title.objects.get(id=instance.id)
-        # объект ManyToMany не извлекается из instance, это QuerySet
+        # объект ManyToMany извлекается из instance как QuerySet
         title_genre = title.genre.all().values()
         list_dict =[]
         # пройдём циклом по переданным в request'е жанрам
@@ -128,8 +113,6 @@ class TitlePostSerializer(serializers.ModelSerializer):
             dict = {'name': genre['name'], 'slug': genre['slug']}
             list_dict.append(dict)  # наполняем список жанров словарями
         data['genre'] = list_dict  # 'рукотворный' JSON-вид
-        data['rating'] = None  # объект только создан, рейтинга нет
-        # с категориями проще, просто берём из instance
         data['category'] = {
             'name': instance.category.name,
             'slug': instance.category.slug

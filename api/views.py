@@ -1,12 +1,10 @@
-from django.db.models import Avg
 from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 from django.core.mail import send_mail
-from django.db import IntegrityError
+from django.db.models import Avg
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
-from rest_framework.exceptions import ParseError
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
@@ -14,22 +12,22 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.db.models import Avg
 
 from .filters import TitleFilter
 from .models import Category, Genre, Review, Title, User
 from .permissions import (AdminOrReadOnly, AdminPermission,
-                          ReviewAndCommentPermission)
-from .serializers import (
-    CategorySerializer, CommentSerializer, GenreSerializer, NewUserSerializer,
-    ReviewSerializer, TitleListSerializer, TitlePostSerializer, UserSerializer)
+                          IsAuthorModeratorAdminOrReadOnly)
+from .serializers import (CategorySerializer, CommentSerializer,
+                          GenreSerializer, NewUserSerializer, ReviewSerializer,
+                          TitleListSerializer, TitlePostSerializer,
+                          UserSerializer)
 
 
 class ReviewViewSet(ModelViewSet):
     serializer_class = ReviewSerializer
     permission_classes = [
         IsAuthenticatedOrReadOnly,
-        ReviewAndCommentPermission
+        IsAuthorModeratorAdminOrReadOnly
     ]
 
     def get_title(self):  # DRY function for extract 'id' from url and check
@@ -42,12 +40,19 @@ class ReviewViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, title=self.get_title())
 
+    # def perform_update(self, serializer):
+    #     get_object_or_404(
+    #         self.get_title().reviews,
+    #         id=self.kwargs['review_id'],
+    #         title=self.get_title()
+    #     )
+    #     serializer.save(author=self.request.user, title=self.get_title())
 
 class CommentViewSet(ModelViewSet):
     serializer_class = CommentSerializer
     permission_classes = [
         IsAuthenticatedOrReadOnly,
-        ReviewAndCommentPermission
+        IsAuthorModeratorAdminOrReadOnly
     ]
 
     def get_review(self):  # DRY function
@@ -72,7 +77,7 @@ class MixinClass(mixins.ListModelMixin, mixins.CreateModelMixin,
     filter_backends = [filters.SearchFilter]
     search_fields = ['=name']
     lookup_field = 'slug'
-    permission_classes = [AdminOrReadOnly]
+    permission_classes = [AdminOrReadOnly, IsAuthenticatedOrReadOnly]
 
 
 class CategoryViewSet(MixinClass):

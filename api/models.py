@@ -5,7 +5,6 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
-#from django.utils import timezone
 
 from . import utils
 
@@ -63,6 +62,14 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.email
+
+    @property
+    def is_admin(self):
+        return self.is_superuser or self.role == Role.ADMIN
+
+    @property
+    def is_moderator(self):
+        return self.is_admin or self.role == Role.MODERATOR
 
 
 class Category(models.Model):
@@ -135,7 +142,7 @@ class Title(models.Model):
     )
 
     class Meta:
-        ordering = ('year',)
+        ordering = ('id',)
         verbose_name = 'произведение'
         verbose_name_plural = 'произведения'
 
