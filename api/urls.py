@@ -1,10 +1,9 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (CategoryViewSet, CommentViewSet, GenreViewSet,
-                    GetTokenAPIView, ReviewViewSet, TitleViewSet, UserViewSet,
-                    create_new_user)
+                    ReviewViewSet, TitleViewSet, UserViewSet,
+                    create_new_user, get_token)
 
 router = DefaultRouter()
 router.register('titles', TitleViewSet, basename='titles')
@@ -25,13 +24,13 @@ router.register(
 urls_auth = [
     path(
         'token/',
-        GetTokenAPIView.as_view(),
+        get_token,
         name='get_token'
     ),
     path(
         'email/',
         create_new_user,
-        name='auth'
+        name='email'
     )
 ]
 

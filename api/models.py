@@ -53,7 +53,7 @@ class User(AbstractUser):
         choices=Role.choices,
         default=Role.USER
     )
-    confirmation_code = models.CharField(max_length=20)
+#    confirmation_code = models.CharField(max_length=20)
 
     class Meta:
         ordering = ('email',)
@@ -142,7 +142,9 @@ class Title(models.Model):
     )
 
     class Meta:
-        ordering = ('id',)
+        # сортировку добавил во вьюсете из-за неведомого warning'а
+        # Warning!!! Add .order_by('id') to retain the current query
+        # QuerySet won't use Meta.ordering in Django 3.1
         verbose_name = 'произведение'
         verbose_name_plural = 'произведения'
 

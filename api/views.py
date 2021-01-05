@@ -1,6 +1,11 @@
+from django.utils import timezone
 from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.models import update_last_login
+from django.contrib.auth.tokens import default_token_generator
+from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
+from django.core.validators import validate_email
 from django.db.models import Avg
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import filters, mixins, status, viewsets
@@ -9,7 +14,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import RefreshToken
 
@@ -84,7 +88,8 @@ class GenreViewSet(MixinClass):
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.annotate(rating=Avg('reviews__score'))
+    queryset = Title.objects.annotate(
+        rating=Avg('reviews__score')).order_by('id')
     filterset_class = TitleFilter
     permission_classes = [IsAuthenticatedOrReadOnly, AdminOrReadOnly]
 
@@ -92,26 +97,6 @@ class TitleViewSet(ModelViewSet):
         if self.action in ('list', 'retrieve'):
             return TitleListSerializer
         return TitlePostSerializer
-
-
-class GetTokenAPIView(APIView):
-    permission_classes = (AllowAny,)
-
-    def get_tokens_for_user(self, user):
-        refresh = RefreshToken.for_user(user)
-        return {
-            'refresh': str(refresh),
-            'access': str(refresh.access_token),
-        }
-
-    def post(self, request):
-        email = request.data.get('email')
-        user = get_object_or_404(User, email=email)
-        code = request.data.get('confirmation_code')
-        if user.confirmation_code == code:
-            tokens = self.get_tokens_for_user(user)
-            return Response({'massage': tokens})
-        return Response({'massage': 'wrong confirmation code'})
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -130,33 +115,51 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'GET':
             serializer = UserSerializer(user)
             return Response(serializer.data)
-        elif request.method == 'PATCH':
-            serializer = UserSerializer(user, data=request.data, partial=True)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
-            return Response(serializer.data)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
 
 
 @csrf_exempt
 @api_view(['POST'])
-@permission_classes(AllowAny)
+# @permission_classes(AllowAny)
 def create_new_user(request):
     email = request.POST.get('email')
-    password = BaseUserManager.make_random_password(20)
-    username = email.split('@')[0]
-    user = User.objects.create(
-        email=email,
-        username=username,
-        password=password,
-        confirmation_code=password  # дублирую пароль в качестве кода доступа
-    )
+    # try:
+    #     validate_email(email)
+    # except ValidationError as e:
+    #     raise e
+    user,  _ = User.objects.get_or_create(email=email)
+    code = default_token_generator.make_token(user)
     send_mail(
         'Automatic registration',
-        f'Dear User! For access to API use this code: {password}',
+        f'Dear User! For access to API use this code: {code}',
         'YAMdb@mail.com',
         [settings.EMAIL_FILE_PATH],
         fail_silently=False,
     )
-    serializer = NewUserSerializer(user, data=email)
-    serializer.is_valid()
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # serializer = NewUserSerializer(user, data=email)
+    # serializer.is_valid()
+    # return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+def get_tokens_for_user(user):
+    refresh = RefreshToken.for_user(user)
+    return {
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+    }
+
+
+@csrf_exempt
+@api_view(['POST'])
+@permission_classes(AllowAny,)
+def get_token(request):
+    email = request.data.get('email')
+    user = get_object_or_404(User, email=email)
+    code = request.data.get('confirmation_code')
+    if user.confirmation_code == code:
+        tokens = get_tokens_for_user(user)
+        return Response({'token': tokens})
+    return Response({'massage': 'wrong confirmation code'})
