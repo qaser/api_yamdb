@@ -8,7 +8,7 @@ from django.db.models.deletion import CASCADE
 
 from . import utils
 
-current_year = dt.now().year
+CURRENT_YEAR = dt.now().year
 
 
 class Role(models.TextChoices):
@@ -53,7 +53,6 @@ class User(AbstractUser):
         choices=Role.choices,
         default=Role.USER
     )
-#    confirmation_code = models.CharField(max_length=20)
 
     class Meta:
         ordering = ('email',)
@@ -117,7 +116,7 @@ class Title(models.Model):
     year = models.PositiveSmallIntegerField(
         verbose_name='год выпуска',
         db_index=True,
-        validators=[utils.MaxValueValidator(current_year+1)]
+        validators=[utils.MaxValueValidator(CURRENT_YEAR+1)]
     )
     description = models.TextField(
         verbose_name='описание',
