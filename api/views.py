@@ -125,23 +125,21 @@ class UserViewSet(viewsets.ModelViewSet):
 @api_view(['POST'])
 # @permission_classes(AllowAny)
 def create_new_user(request):
+    serializer = NewUserSerializer(data=request.data, many=True)
+    serializer.is_valid(raise_exception=True)
     email = request.POST.get('email')
-    # try:
-    #     validate_email(email)
-    # except ValidationError as e:
-    #     raise e
+    # нижнее подчёркивание это "мусорный" аргумент, он не учитывается
+    # иначе отдаёт кортеж
     user,  _ = User.objects.get_or_create(email=email)
     code = default_token_generator.make_token(user)
     send_mail(
         'Automatic registration',
         f'Dear User! For access to API use this code: {code}',
-        'YAMdb@mail.com',
-        [settings.EMAIL_FILE_PATH],
+        settings.EMAIL_HOST_USER,
+        [email],
         fail_silently=False,
     )
-    # serializer = NewUserSerializer(user, data=email)
-    # serializer.is_valid()
-    # return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response({'email': email})
 
 
 def get_tokens_for_user(user):
@@ -154,12 +152,15 @@ def get_tokens_for_user(user):
 
 @csrf_exempt
 @api_view(['POST'])
-@permission_classes(AllowAny,)
+# @permission_classes(AllowAny)
 def get_token(request):
+    serializer = NewUserSerializer(data=request.data, many=True)
+    serializer.is_valid(raise_exception=True)
     email = request.data.get('email')
     user = get_object_or_404(User, email=email)
     code = request.data.get('confirmation_code')
-    if user.confirmation_code == code:
+    check_pass = default_token_generator.check_token(user, code)
+    if check_pass:
         tokens = get_tokens_for_user(user)
         return Response({'token': tokens})
-    return Response({'massage': 'wrong confirmation code'})
+    return Response({'message': 'wrong confirmation code'})
