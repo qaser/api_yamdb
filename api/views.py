@@ -1,17 +1,12 @@
-from django.utils import timezone
 from django.conf import settings
-from django.contrib.auth.base_user import BaseUserManager
-from django.contrib.auth.models import update_last_login
 from django.contrib.auth.tokens import default_token_generator
-from django.core.exceptions import ValidationError
 from django.core.mail import send_mail
-from django.core.validators import validate_email
 from django.db.models import Avg
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework import filters, mixins, status, viewsets
-from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework import filters, mixins, viewsets
+from rest_framework.decorators import action, api_view
 from rest_framework.generics import get_object_or_404
-from rest_framework.permissions import (AllowAny, IsAuthenticated,
+from rest_framework.permissions import (IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -21,10 +16,9 @@ from .filters import TitleFilter
 from .models import Category, Genre, Review, Title, User
 from .permissions import (AdminOrReadOnly, AdminPermission,
                           IsAuthorModeratorAdminOrReadOnly)
-from .serializers import (CategorySerializer, CommentSerializer,
-                          GenreSerializer, NewUserSerializer, ReviewSerializer,
-                          TitleListSerializer, TitlePostSerializer,
-                          UserSerializer)
+from .serializers import (
+    CategorySerializer, CommentSerializer, GenreSerializer, NewUserSerializer,
+    ReviewSerializer, TitleListSerializer, TitlePostSerializer, UserSerializer)
 
 
 class ReviewViewSet(ModelViewSet):
@@ -74,7 +68,7 @@ class MixinClass(mixins.ListModelMixin, mixins.CreateModelMixin,
     filter_backends = [filters.SearchFilter]
     search_fields = ['=name']
     lookup_field = 'slug'
-    permission_classes = [AdminOrReadOnly, IsAuthenticatedOrReadOnly]
+    permission_classes = [IsAuthenticatedOrReadOnly, AdminOrReadOnly]
 
 
 class CategoryViewSet(MixinClass):
@@ -117,13 +111,12 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         serializer = UserSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
+        serializer.save(role=user.role, partial=True)
         return Response(serializer.data)
 
 
 @csrf_exempt
 @api_view(['POST'])
-# @permission_classes(AllowAny)
 def create_new_user(request):
     serializer = NewUserSerializer(data=request.data, many=True)
     serializer.is_valid(raise_exception=True)
@@ -134,7 +127,7 @@ def create_new_user(request):
     code = default_token_generator.make_token(user)
     send_mail(
         'Automatic registration',
-        f'Dear User! For access to API use this code: {code}',
+        f'Dear User, for access to API use this code: {code}',
         settings.EMAIL_HOST_USER,
         [email],
         fail_silently=False,
@@ -152,7 +145,6 @@ def get_tokens_for_user(user):
 
 @csrf_exempt
 @api_view(['POST'])
-# @permission_classes(AllowAny)
 def get_token(request):
     serializer = NewUserSerializer(data=request.data, many=True)
     serializer.is_valid(raise_exception=True)

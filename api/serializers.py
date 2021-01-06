@@ -1,8 +1,4 @@
-from django.core import validators
-from django.db.models import Avg
 from rest_framework import serializers
-from rest_framework.generics import get_object_or_404
-from rest_framework.validators import UniqueTogetherValidator
 
 from .models import Category, Comment, Genre, Review, Title, User
 
@@ -45,10 +41,14 @@ class ReviewSerializer(serializers.ModelSerializer):
         request_method = self.context['request'].method
         if request_method == 'PATCH':
             return data
-        title = self.context.get('request').parser_context['kwargs']['title_id']
+        title = (
+            self.context.get('request').parser_context['kwargs']['title_id']
+        )
         author = self.context['request'].user
         message = 'Вы уже оставляли отзыв на данное произведение'
-        check_exists = Review.objects.filter(title=title, author=author).exists()
+        check_exists = (
+            Review.objects.filter(title=title, author=author).exists()
+        )
         if check_exists:
             raise serializers.ValidationError(message)
         return data
@@ -109,7 +109,7 @@ class TitlePostSerializer(serializers.ModelSerializer):
         title = Title.objects.get(id=instance.id)
         # объект ManyToMany извлекается из instance как QuerySet
         title_genre = title.genre.all().values()
-        list_dict =[]
+        list_dict = []
         # пройдём циклом по переданным в request'е жанрам
         for i in data['genre']:  # data['genre'] это список слагов жанра
             genre = title_genre.get(slug=i)

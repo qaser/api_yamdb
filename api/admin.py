@@ -1,7 +1,9 @@
-from api.apps import ApiConfig
-from django.contrib import admin
 from importlib import import_module
+
 from django.apps import apps
+from django.contrib import admin
+
+from api.apps import ApiConfig
 
 
 def model_register(*app_list):
