@@ -82,8 +82,9 @@ class GenreViewSet(MixinClass):
 
 
 class TitleViewSet(ModelViewSet):
-    queryset = Title.objects.annotate(
-        rating=Avg('reviews__score')).order_by('id')
+    queryset = (
+        Title.objects.annotate(rating=Avg('reviews__score')).order_by('id')
+    )
     filterset_class = TitleFilter
     permission_classes = [IsAuthenticatedOrReadOnly, AdminOrReadOnly]
 
@@ -118,9 +119,10 @@ class UserViewSet(viewsets.ModelViewSet):
 @csrf_exempt
 @api_view(['POST'])
 def create_new_user(request):
-    serializer = NewUserSerializer(data=request.data, many=True)
+    serializer = NewUserSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    email = request.POST.get('email')
+    # никогда не берём сырые данные из request.data
+    email = serializer.validated_data['email']
     # нижнее подчёркивание это "мусорный" аргумент, он не учитывается
     # иначе отдаёт кортеж
     user,  _ = User.objects.get_or_create(email=email)
@@ -132,7 +134,7 @@ def create_new_user(request):
         [email],
         fail_silently=False,
     )
-    return Response({'email': email})
+    return Response(serializer.data)
 
 
 def get_tokens_for_user(user):
@@ -146,9 +148,9 @@ def get_tokens_for_user(user):
 @csrf_exempt
 @api_view(['POST'])
 def get_token(request):
-    serializer = NewUserSerializer(data=request.data, many=True)
+    serializer = NewUserSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
-    email = request.data.get('email')
+    email = serializer.validated_data['email']
     user = get_object_or_404(User, email=email)
     code = request.data.get('confirmation_code')
     check_pass = default_token_generator.check_token(user, code)

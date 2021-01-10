@@ -8,10 +8,10 @@ from api.apps import ApiConfig
 
 def model_register(*app_list):
     # проходим циклом по зарегистрированным приложениям
-    for i in app_list:
-        module_path = f'{i}.admin'
+    for app in app_list:
+        module_path = f'{app}.admin'
         module = import_module(module_path)
-        app_config = apps.get_app_config(i)
+        app_config = apps.get_app_config(app)
         # проходим циклом по всем моделям приложения
         for model in app_config.get_models():
             model_admin = getattr(module, f'{model.__name__}Admin', None)

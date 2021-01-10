@@ -119,8 +119,8 @@ REST_FRAMEWORK = {
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.mail.ru'
-EMAIL_HOST_USER = 'mymail@mail.ru'  # с реальным адресом проверено
-EMAIL_HOST_PASSWORD = 'password'  # письма приходят
+EMAIL_HOST_USER = 'huji@mail.ru'  # здесь нужно указать реальный адрес
+EMAIL_HOST_PASSWORD = 'polina22082009'  # здесь пароль
 EMAIL_PORT = 2525
 EMAIL_USE_TLS = True
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

@@ -8,12 +8,9 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'first_name',
-            'last_name',
-            'username',
-            'email',
-            'bio',
-            'role'
+            'first_name', 'last_name',
+            'username', 'email',
+            'bio', 'role',
         )
 
 
@@ -32,19 +29,17 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
-        exclude_fields = ('title',)
+        exclude = ('title',)
         model = Review
         read_only_fields = ('pub_date',)
 
     def validate(self, data):
-        request_method = self.context['request'].method
-        if request_method == 'PATCH':
+        request_context = self.context['request']
+        request_method = request_context.method
+        if request_method != 'POST':
             return data
-        title = (
-            self.context.get('request').parser_context['kwargs']['title_id']
-        )
-        author = self.context['request'].user
+        title = request_context.parser_context['kwargs']['title_id']
+        author = request_context.user
         message = 'Вы уже оставляли отзыв на данное произведение'
         check_exists = (
             Review.objects.filter(title=title, author=author).exists()
@@ -61,8 +56,7 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
-        exclude_fields = ('review',)
+        exclude = ('review',)
         model = Comment
 
 
@@ -105,19 +99,4 @@ class TitlePostSerializer(serializers.ModelSerializer):
         model = Title
 
     def to_representation(self, instance):
-        data = super(TitlePostSerializer, self).to_representation(instance)
-        title = Title.objects.get(id=instance.id)
-        # объект ManyToMany извлекается из instance как QuerySet
-        title_genre = title.genre.all().values()
-        list_dict = []
-        # пройдём циклом по переданным в request'е жанрам
-        for i in data['genre']:  # data['genre'] это список слагов жанра
-            genre = title_genre.get(slug=i)
-            dict = {'name': genre['name'], 'slug': genre['slug']}
-            list_dict.append(dict)  # наполняем список жанров словарями
-        data['genre'] = list_dict  # 'рукотворный' JSON-вид
-        data['category'] = {
-            'name': instance.category.name,
-            'slug': instance.category.slug
-        }
-        return data
+        return TitleListSerializer(instance).data

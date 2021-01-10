@@ -6,9 +6,9 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.deletion import CASCADE
 
-from . import utils
-
 CURRENT_YEAR = dt.now().year
+MESSAGE_MIN = 'Значение должно быть не ниже %(limit_value)s.'
+MESSAGE_MAX = 'Значение должно быть не выше %(limit_value)s.'
 
 
 class Role(models.TextChoices):
@@ -20,6 +20,7 @@ class Role(models.TextChoices):
 class User(AbstractUser):
     username = models.CharField(
         'логин',
+        db_index=True,
         max_length=30,
         unique=True,
         null=True,
@@ -68,15 +69,20 @@ class User(AbstractUser):
 
     @property
     def is_moderator(self):
-        return self.is_admin or self.role == Role.MODERATOR
+        return self.is_staff or self.role == Role.MODERATOR
 
 
 class Category(models.Model):
-    name = models.CharField('название категории', max_length=50)
+    name = models.CharField(
+        'название категории',
+        max_length=50,
+        db_index=True
+    )
     slug = models.SlugField(
         unique=True,
         verbose_name='путь',
-        max_length=100
+        max_length=100,
+        db_index=True
     )
 
     class Meta:
@@ -91,11 +97,13 @@ class Category(models.Model):
 class Genre(models.Model):
     name = models.CharField(
         verbose_name='название жанра',
-        max_length=50
+        max_length=50,
+        db_index=True
     )
     slug = models.SlugField(
         unique=True,
         verbose_name='путь',
+        db_index=True
     )
 
     class Meta:
@@ -116,7 +124,7 @@ class Title(models.Model):
     year = models.PositiveSmallIntegerField(
         verbose_name='год выпуска',
         db_index=True,
-        validators=[utils.MaxValueValidator(CURRENT_YEAR+1)]
+        validators=[MaxValueValidator(CURRENT_YEAR+1, message=MESSAGE_MAX)]
     )
     description = models.TextField(
         verbose_name='описание',
@@ -128,7 +136,7 @@ class Title(models.Model):
         verbose_name='жанр',
         blank=True,
         db_index=True,
-        related_name='title'
+        related_name='titles'
     )
     category = models.ForeignKey(
         Category,
@@ -137,13 +145,11 @@ class Title(models.Model):
         null=True,
         blank=True,
         db_index=True,
-        related_name='title'
+        related_name='titles'
     )
 
     class Meta:
-        # сортировку добавил во вьюсете из-за неведомого warning'а
-        # Warning!!! Add .order_by('id') to retain the current query
-        # QuerySet won't use Meta.ordering in Django 3.1
+        # сортировку добавил во вьюсете
         verbose_name = 'произведение'
         verbose_name_plural = 'произведения'
 
@@ -168,7 +174,10 @@ class Review(models.Model):
     )
     score = models.PositiveSmallIntegerField(
         'оценка',
-        validators=[utils.MinValueValidator(1), utils.MaxValueValidator(10)]
+        validators=[
+            MinValueValidator(1, message=MESSAGE_MIN),
+            MaxValueValidator(10, message=MESSAGE_MAX)
+        ]
     )
     pub_date = models.DateTimeField(
         'дата публикации отзыва',
