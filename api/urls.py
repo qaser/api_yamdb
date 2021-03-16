@@ -26,7 +26,6 @@ urls_auth = [
     path('email/', create_new_user, name='email')
 ]
 
-
 urlpatterns = [
     path('v1/', include(router.urls)),
     path('v1/auth/', include(urls_auth))
