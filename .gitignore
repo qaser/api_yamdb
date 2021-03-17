@@ -4,6 +4,9 @@ venv/
 .venv
 .venv/
 
+env
+.env
+
 .import
 
 sent_emails/
@@ -17,7 +20,10 @@ __pycache__/
 .DS_Store
 .AppleDouble
 .LSOverride
+
 gitignore
+dockerignore
+
 vscode/
 .vscode/
 
